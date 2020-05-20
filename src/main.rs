@@ -1,3 +1,11 @@
+use std::io;
+
+
 fn main() {
-    println!("Welcome to csv-transform @ etl.sh");
+    let mut reader = csv::Reader::from_reader(io::stdin());
+
+    for result in reader.records() {
+        let record = result.expect("a CSV record");
+        println!("{:?}", record);
+    }
 }
