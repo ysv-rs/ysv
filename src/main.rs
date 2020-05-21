@@ -4,6 +4,13 @@ use std::io;
 // use std::ffi::OsString;
 // use std::fs::File;
 use csv::Reader;
+use csv::ByteRecord;
+
+
+fn transform(record: ByteRecord) -> ByteRecord {
+    // Just some modification
+    ByteRecord::from(vec![b"test"])
+}
 
 
 fn pass_through() {
