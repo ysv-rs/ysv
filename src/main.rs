@@ -8,18 +8,22 @@ use csv::Reader;
 
 fn pass_through() {
     let mut reader = Reader::from_reader(io::stdin());
+    let mut writer = csv::Writer::from_writer(io::stdout());
 
     let headers = reader.headers().expect("Where are my headers?!").clone();
-    println!("Headers: {:?}", headers);
+    writer.write_record(&headers);
 
     for result in reader.records() {
         match result {
-            Ok(record) => println!("{:?}", record),
+            Ok(record) => writer.write_record(&record),
             Err(err) => {
                 eprintln!("ERROR reading CSV from <stdin>: {}", err);
+                Ok(())
             }
-        }
+        };
     }
+
+    writer.flush().expect("cannot flush!");
 }
 
 
