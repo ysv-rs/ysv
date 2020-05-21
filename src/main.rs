@@ -11,14 +11,13 @@ fn pass_through() {
     let mut writer = csv::Writer::from_writer(io::stdout());
 
     let headers = reader.headers().expect("Where are my headers?!").clone();
-    writer.write_record(&headers);
+    writer.write_record(&headers).expect("woo");
 
-    for result in reader.records() {
+    for result in reader.byte_records() {
         match result {
-            Ok(record) => writer.write_record(&record),
+            Ok(record) => writer.write_record(&record).expect("boo!"),
             Err(err) => {
                 eprintln!("ERROR reading CSV from <stdin>: {}", err);
-                Ok(())
             }
         };
     }
