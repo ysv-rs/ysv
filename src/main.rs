@@ -1,22 +1,18 @@
 use std::io;
 use std::env;
-// use std::error::Error;
 use std::fs;
 use csv::Reader;
 use csv::ByteRecord;
 use std::ffi::OsString;
 use serde::Deserialize;
+use std::collections::BTreeMap;
+use serde::de::value::StrDeserializer;
 
 
 #[derive(Debug, PartialEq, Deserialize)]
 struct Config {
     version: i8,
-}
-
-
-fn transform(record: ByteRecord) -> ByteRecord {
-    // Just some modification
-    ByteRecord::from(vec![b"test"])
+    columns: BTreeMap<String, String>,
 }
 
 
