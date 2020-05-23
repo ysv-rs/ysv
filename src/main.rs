@@ -20,7 +20,9 @@ fn transform(record: ByteRecord) -> ByteRecord {
 }
 
 
-fn pass_through() {
+fn process(config: Config) {
+    eprintln!("Using config: {:?}", config);
+
     let mut reader = Reader::from_reader(io::stdin());
     let mut writer = csv::Writer::from_writer(io::stdout());
 
@@ -52,10 +54,11 @@ fn parse_config_from_file(path: OsString) -> Result<Config, String> {
 
 
 fn main() {
-    let config = match env::args_os().nth(1) {
-       None => Err(String::from("Please specify configuration file.")),
-       Some(file_path) => parse_config_from_file(file_path),
-    };
-
-    println!("config: {:?}", config);
+    match env::args_os().nth(1) {
+       None => eprintln!("Please specify configuration file."),
+       Some(file_path) => match parse_config_from_file(file_path) {
+           Ok(config) => process(config),
+           Err(err) => eprintln!("{}", err)
+       },
+    }
 }
