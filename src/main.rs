@@ -5,10 +5,10 @@ use std::fs;
 use csv::Reader;
 use csv::ByteRecord;
 use std::ffi::OsString;
-// use serde::{Serialize, Deserialize};
-// use std::error::Error;
+use serde::Deserialize;
 
-#[derive(Debug)] //, PartialEq, Serialize, Deserialize)]
+
+#[derive(Debug, PartialEq, Deserialize)]
 struct Config {
     version: i8,
 }
@@ -42,11 +42,12 @@ fn pass_through() {
 
 fn parse_config_from_file(path: OsString) -> Result<Config, String> {
     match fs::read_to_string(path) {
-        Ok(content) => Ok(Config { version: 2 }),
+        Ok(content) => match serde_yaml::from_str(&content) {
+            Ok(config) => Ok(config),
+            Err(err) => Err(format!("Could not parse YAML: {}", err.to_string()))
+        },
         Err(err) => Err(format!("Cannot open config: {}", err.to_string()))
     }
-
-    // let config = serde_yaml::from_reader()
 }
 
 
