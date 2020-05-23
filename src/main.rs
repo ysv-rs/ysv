@@ -1,10 +1,16 @@
 use std::io;
-// use std::env;
+use std::env;
 // use std::error::Error;
-// use std::ffi::OsString;
 // use std::fs::File;
 use csv::Reader;
 use csv::ByteRecord;
+use std::ffi::OsString;
+
+
+#[derive(Debug)]
+struct Config {
+    version: i8,
+}
 
 
 fn transform(record: ByteRecord) -> ByteRecord {
@@ -33,11 +39,18 @@ fn pass_through() {
 }
 
 
-fn main() {
-    // let mut reader = match env::args_os().nth(1) {
-    //    None => ,
-    //    Some(file_path) => Reader::from_path(file_path).expect("Cannot open a file!"),
-    // }
+fn parse_config_from_file(path: OsString) -> Config {
+    Config {
+        version: 1,
+    }
+}
 
-    pass_through();
+
+fn main() {
+    let config = match env::args_os().nth(1) {
+       None => Config { version: 0 },
+       Some(file_path) => parse_config_from_file(file_path),
+    };
+
+    println!("config: {:?}", config);
 }
