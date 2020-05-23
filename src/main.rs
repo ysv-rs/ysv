@@ -1,13 +1,14 @@
 use std::io;
 use std::env;
 // use std::error::Error;
-// use std::fs::File;
+use std::fs;
 use csv::Reader;
 use csv::ByteRecord;
 use std::ffi::OsString;
+// use serde::{Serialize, Deserialize};
+// use std::error::Error;
 
-
-#[derive(Debug)]
+#[derive(Debug)] //, PartialEq, Serialize, Deserialize)]
 struct Config {
     version: i8,
 }
@@ -39,16 +40,19 @@ fn pass_through() {
 }
 
 
-fn parse_config_from_file(path: OsString) -> Config {
-    Config {
-        version: 1,
+fn parse_config_from_file(path: OsString) -> Result<Config, String> {
+    match fs::read_to_string(path) {
+        Ok(content) => Ok(Config { version: 2 }),
+        Err(err) => Err(format!("Cannot open config: {}", err.to_string()))
     }
+
+    // let config = serde_yaml::from_reader()
 }
 
 
 fn main() {
     let config = match env::args_os().nth(1) {
-       None => Config { version: 0 },
+       None => Err(String::from("Please specify configuration file.")),
        Some(file_path) => parse_config_from_file(file_path),
     };
 
