@@ -1,7 +1,7 @@
 use std::io;
 use std::env;
 use std::fs;
-use csv::Reader;
+use csv::{Reader, StringRecord};
 use csv::ByteRecord;
 use std::ffi::OsString;
 use serde::Deserialize;
@@ -9,10 +9,22 @@ use std::collections::BTreeMap;
 use serde::de::value::StrDeserializer;
 
 
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Debug, Deserialize)]
+enum Column {
+    Input(String),
+    Transformations(BTreeMap<String, String>),
+}
+
+
+#[derive(Debug, Deserialize)]
 struct Config {
     version: i8,
-    columns: BTreeMap<String, String>,
+    columns: BTreeMap<String, Column>,
+}
+
+
+fn transform(record: ByteRecord, config: &Config, headers: &StringRecord) -> ByteRecord {
+    record
 }
 
 
@@ -27,7 +39,9 @@ fn process(config: Config) {
 
     for result in reader.byte_records() {
         match result {
-            Ok(record) => writer.write_record(&record).expect("boo!"),
+            Ok(record) => writer.write_record(&transform(
+                record, &config, &headers,
+            )).expect("boo!"),
             Err(err) => {
                 eprintln!("ERROR reading CSV from <stdin>: {}", err);
             }
