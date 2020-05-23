@@ -6,13 +6,21 @@ use csv::ByteRecord;
 use std::ffi::OsString;
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use serde::de::value::StrDeserializer;
 
 
 #[derive(Debug, Deserialize)]
+#[serde(untagged)]
+enum Transformation {
+    Input { input: String },
+    Trim { trim: u16 },
+}
+
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
 enum Column {
     Input(String),
-    Transformations(BTreeMap<String, String>),
+    Transformations(Vec<Transformation>),
 }
 
 
@@ -29,7 +37,7 @@ fn transform(record: ByteRecord, config: &Config, headers: &StringRecord) -> Byt
 
 
 fn process(config: Config) {
-    eprintln!("Using config: {:?}", config);
+    eprintln!("Using config: {:#?}", config);
 
     let mut reader = Reader::from_reader(io::stdin());
     let mut writer = csv::Writer::from_writer(io::stdout());

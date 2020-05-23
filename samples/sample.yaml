@@ -1,5 +1,7 @@
 version: 1
 columns:
   vehicle__vin: "Auto VIN"
-  vehicle__year: "Auto Year"
+  vehicle__year:
+    - input: "Auto Year"
+    - trim: 5
   vehicle__make: "Auto Make"
