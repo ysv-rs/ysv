@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-pub enum Transformation {
+pub enum Step {
     Input { input: String },
     Trim { trim: u16 },
 }
@@ -16,7 +16,7 @@ pub enum Transformation {
 #[serde(untagged)]
 pub enum Column {
     Input(String),
-    Transformations(Vec<Transformation>),
+    Steps(Vec<Step>),
 }
 
 

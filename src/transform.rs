@@ -5,14 +5,14 @@ use std::collections::BTreeMap;
 use crate::config::{Config, Column};
 
 #[derive(Debug)]
-enum Transformation {
+enum Expression {
     Input(usize),
 }
 
 
 #[derive(Debug)]
 struct Transformer {
-    columns: Vec<Vec<Transformation>>,
+    columns: Vec<Vec<Expression>>,
 }
 
 
@@ -37,10 +37,10 @@ fn create_transformer(config: &Config, headers: &StringRecord) -> Transformer {
             Column::Input(raw_column_name) => match input_columns_index_by_name.get(
                 raw_column_name
             ) {
-                Some(index) => Ok(vec![Transformation::Input(index.clone())]),
+                Some(index) => Ok(vec![Expression::Input(index.clone())]),
                 None => Err(format!("Column {} is not found in the input file.", raw_column_name))
             },
-            Column::Transformations(transformations) => Ok(vec![])
+            Column::Steps(transformations) => Ok(vec![])
         };
     }
 
