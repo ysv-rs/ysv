@@ -53,23 +53,60 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
 }
 
 
-pub fn create_transformer(config: &Config, headers: &StringRecord) -> Transformer {
+fn step_to_expression(
+    step: &Step,
+    input_column_index_by_name: &BTreeMap<String, usize>,
+) -> Expression {
+    Expression::Input(5)
+}
+
+
+fn column_to_expressions(
+    column: &Column,
+    input_column_index_by_name: &BTreeMap<String, usize>,
+) -> Vec<Expression> {
+    match column {
+        Column::Input(input_column_name) => vec![step_to_expression(
+            &Step::Input {
+                input: input_column_name.clone(),
+            },
+            &input_column_index_by_name,
+        )],
+        Column::Steps(steps) => steps.iter().map(|step| step_to_expression(
+            step,
+            &input_column_index_by_name,
+        )).collect()
+    }
+}
+
+
+pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Transformer, String> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
     eprintln!("Index by name: {:?}", input_columns_index_by_name);
 
-    for (output_column_name, column) in config.columns.iter() {
-        let column_transformations = match column {
-            Column::Input(raw_column_name) => match input_columns_index_by_name.get(
-                raw_column_name
-            ) {
-                Some(index) => Ok(vec![Expression::Input(index.clone())]),
-                None => Err(format!("Column {} is not found in the input file.", raw_column_name))
-            },
-            Column::Steps(transformations) => Ok(vec![])
-        };
-    }
+    let expressions: Vec<Vec<Expression>> = config.columns.values().map(
+        |column| column_to_expressions(
+            column,
+            &input_columns_index_by_name,
+        ),
+    ).collect();
 
-    Transformer {
+
+    eprintln!("Expressions list: {:?}", expressions);
+
+    // for (output_column_name, column) in config.columns.iter() {
+    //     let column_transformations = match column {
+    //         Column::Input(raw_column_name) => match input_columns_index_by_name.get(
+    //             raw_column_name
+    //         ) {
+    //             Some(index) => Ok(vec![Expression::Input(index.clone())]),
+    //             None => Err(format!("Column {} is not found in the input file.", raw_column_name))
+    //         },
+    //         Column::Steps(steps) => Ok(steps.iter().map(step_to_expression))
+    //     };
+    // }
+
+    Ok(Transformer {
         columns: vec![]
-    }
+    })
 }
