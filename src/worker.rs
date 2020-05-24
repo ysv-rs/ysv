@@ -22,18 +22,20 @@ pub fn process(config: Config) {
     let headers = reader.headers().expect("Where are my headers?!").clone();
     writer.write_record(&headers).expect("woo");
 
-    let transformer = create_transformer(&config, &headers);
-    eprintln!("{:?}", transformer);
-
-    for result in reader.byte_records() {
-        match result {
-            Ok(record) => writer.write_record(&transform(
-                record, &config, &headers,
-            )).expect("boo!"),
-            Err(err) => {
-                eprintln!("ERROR reading CSV from <stdin>: {}", err);
+    match create_transformer(&config, &headers) {
+        Ok(transformer) => {
+            for result in reader.byte_records() {
+                match result {
+                    Ok(record) => writer.write_record(&transform(
+                        record, &config, &headers,
+                    )).expect("boo!"),
+                    Err(err) => {
+                        eprintln!("ERROR reading CSV from <stdin>: {}", err);
+                    }
+                };
             }
-        };
+        },
+        Err(err) => eprintln!("Cannot apply config: {}", err)
     }
 
     writer.flush().expect("cannot flush!");

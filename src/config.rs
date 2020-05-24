@@ -94,16 +94,15 @@ pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Tra
     let input_columns_index_by_name = get_input_columns_index_map(headers);
     eprintln!("Index by name: {:?}", input_columns_index_by_name);
 
-    let expressions: Result<Vec<Vec<Expression>>, String> = config.columns.values().map(
+    let maybe_columns: Result<Vec<Vec<Expression>>, String> = config.columns.values().map(
         |column| column_to_expressions(
             column,
             &input_columns_index_by_name,
         ),
     ).collect();
 
-    eprintln!("Expressions list: {:?}", expressions);
-
-    Ok(Transformer {
-        columns: vec![]
-    })
+    match maybe_columns {
+        Ok(columns) => Ok(Transformer { columns }),
+        Err(err) => Err(err)
+    }
 }
