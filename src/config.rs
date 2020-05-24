@@ -4,7 +4,8 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use csv::StringRecord;
 
-use crate::worker::Transformer;
+use crate::transformer::{Transformer, Expression};
+
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -37,6 +38,18 @@ pub fn parse_config_from_file(path: OsString) -> Result<Config, String> {
         },
         Err(err) => Err(format!("Cannot open config: {}", err.to_string()))
     }
+}
+
+
+fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize> {
+    // FIXME awful function, I do not know the proper method yet
+    let mut mapping = BTreeMap::new();
+
+    for (index, value) in headers.iter().enumerate() {
+        mapping.insert(String::from(value), index);
+    }
+
+    mapping
 }
 
 
