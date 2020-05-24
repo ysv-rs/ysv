@@ -2,7 +2,7 @@ use std::io;
 use csv::{ByteRecord, StringRecord, Reader, Writer};
 use std::collections::BTreeMap;
 
-use crate::config::{Config, Column};
+use crate::config::{Config, Column, create_transformer};
 
 #[derive(Debug)]
 enum Expression {
@@ -25,28 +25,6 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
     }
 
     mapping
-}
-
-
-fn create_transformer(config: &Config, headers: &StringRecord) -> Transformer {
-    let input_columns_index_by_name = get_input_columns_index_map(headers);
-    eprintln!("Index by name: {:?}", input_columns_index_by_name);
-
-    for (output_column_name, column) in config.columns.iter() {
-        let column_transformations = match column {
-            Column::Input(raw_column_name) => match input_columns_index_by_name.get(
-                raw_column_name
-            ) {
-                Some(index) => Ok(vec![Expression::Input(index.clone())]),
-                None => Err(format!("Column {} is not found in the input file.", raw_column_name))
-            },
-            Column::Steps(transformations) => Ok(vec![])
-        };
-    }
-
-    Transformer {
-        columns: vec![]
-    }
 }
 
 
