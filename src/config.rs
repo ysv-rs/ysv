@@ -23,7 +23,7 @@ pub enum Column {
 #[derive(Debug, Deserialize)]
 pub struct Config {
     version: i8,
-    columns: BTreeMap<String, Column>,
+    pub(crate) columns: BTreeMap<String, Column>,
 }
 
 
