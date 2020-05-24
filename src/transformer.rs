@@ -1,6 +1,7 @@
 #[derive(Debug)]
 pub enum Expression {
     Input(usize),
+    Slice { start: usize, end: usize },
 }
 
 

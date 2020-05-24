@@ -2,7 +2,7 @@ use std::io;
 use csv::{ByteRecord, StringRecord, Reader, Writer};
 use std::collections::BTreeMap;
 
-use crate::config::{Config, Column, create_transformer};
+use crate::config::{Config, create_transformer};
 
 
 fn transform(record: ByteRecord, config: &Config, headers: &StringRecord) -> ByteRecord {

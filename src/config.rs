@@ -11,7 +11,7 @@ use crate::transformer::{Transformer, Expression};
 #[serde(untagged)]
 pub enum Step {
     Input { input: String },
-    Trim { trim: u16 },
+    Trim { trim: usize },
 }
 
 
@@ -56,22 +56,29 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
 fn step_to_expression(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
-) -> Expression {
-    Expression::Input(5)
+) -> Result<Expression, String> {
+    match step {
+        Step::Input {input} => match input_column_index_by_name.get(input) {
+            Some(index) => Ok(Expression::Input(index.clone())),
+            None => Err(format!("Input column {} not found.", input))
+        },
+
+        Step::Trim {trim} => Ok(Expression::Slice { start: 0, end: *trim })
+    }
 }
 
 
 fn column_to_expressions(
     column: &Column,
     input_column_index_by_name: &BTreeMap<String, usize>,
-) -> Vec<Expression> {
+) -> Result<Vec<Expression>, String> {
     match column {
         Column::Input(input_column_name) => vec![step_to_expression(
             &Step::Input {
                 input: input_column_name.clone(),
             },
             &input_column_index_by_name,
-        )],
+        )].iter().collect(),
         Column::Steps(steps) => steps.iter().map(|step| step_to_expression(
             step,
             &input_column_index_by_name,
@@ -84,27 +91,14 @@ pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Tra
     let input_columns_index_by_name = get_input_columns_index_map(headers);
     eprintln!("Index by name: {:?}", input_columns_index_by_name);
 
-    let expressions: Vec<Vec<Expression>> = config.columns.values().map(
+    let expressions: Result<Vec<Vec<Expression>>, String> = config.columns.values().map(
         |column| column_to_expressions(
             column,
             &input_columns_index_by_name,
         ),
     ).collect();
 
-
     eprintln!("Expressions list: {:?}", expressions);
-
-    // for (output_column_name, column) in config.columns.iter() {
-    //     let column_transformations = match column {
-    //         Column::Input(raw_column_name) => match input_columns_index_by_name.get(
-    //             raw_column_name
-    //         ) {
-    //             Some(index) => Ok(vec![Expression::Input(index.clone())]),
-    //             None => Err(format!("Column {} is not found in the input file.", raw_column_name))
-    //         },
-    //         Column::Steps(steps) => Ok(steps.iter().map(step_to_expression))
-    //     };
-    // }
 
     Ok(Transformer {
         columns: vec![]
