@@ -4,6 +4,7 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use csv::StringRecord;
 
+use crate::worker::Transformer;
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -24,7 +25,7 @@ pub enum Column {
 #[derive(Debug, Deserialize)]
 pub struct Config {
     version: i8,
-    columns: BTreeMap<String, Column>,
+    pub(crate) columns: BTreeMap<String, Column>,
 }
 
 

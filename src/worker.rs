@@ -5,13 +5,13 @@ use std::collections::BTreeMap;
 use crate::config::{Config, Column, create_transformer};
 
 #[derive(Debug)]
-enum Expression {
+pub enum Expression {
     Input(usize),
 }
 
 
 #[derive(Debug)]
-struct Transformer {
+pub struct Transformer {
     columns: Vec<Vec<Expression>>,
 }
 

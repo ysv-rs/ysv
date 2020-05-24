@@ -1,9 +1,9 @@
 mod config;
-mod transform;
+mod worker;
 
 use std::env;
 
-use transform::process;
+use worker::process;
 use config::parse_config_from_file;
 
 
