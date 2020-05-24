@@ -73,12 +73,15 @@ fn column_to_expressions(
     input_column_index_by_name: &BTreeMap<String, usize>,
 ) -> Result<Vec<Expression>, String> {
     match column {
-        Column::Input(input_column_name) => vec![step_to_expression(
+        Column::Input(input_column_name) => match step_to_expression(
             &Step::Input {
                 input: input_column_name.clone(),
             },
             &input_column_index_by_name,
-        )].iter().collect(),
+        ) {
+            Ok(expression) => Ok(vec![expression]),
+            Err(err) => Err(err),
+        },
         Column::Steps(steps) => steps.iter().map(|step| step_to_expression(
             step,
             &input_column_index_by_name,
