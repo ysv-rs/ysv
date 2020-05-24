@@ -1,3 +1,5 @@
+use csv::StringRecord;
+
 #[derive(Debug)]
 pub enum Expression {
     Input(usize),
@@ -7,5 +9,6 @@ pub enum Expression {
 
 #[derive(Debug)]
 pub struct Transformer {
+    pub headers: StringRecord,
     pub columns: Vec<Vec<Expression>>,
 }

@@ -101,8 +101,10 @@ pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Tra
         ),
     ).collect();
 
+    let headers = config.columns.keys().collect();
+
     match maybe_columns {
-        Ok(columns) => Ok(Transformer { columns }),
+        Ok(columns) => Ok(Transformer { headers, columns }),
         Err(err) => Err(err)
     }
 }
