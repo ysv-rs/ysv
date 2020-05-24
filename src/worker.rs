@@ -1,13 +1,21 @@
 use std::io;
-use csv::{ByteRecord, StringRecord, Reader, Writer};
-use std::collections::BTreeMap;
+use csv::{ByteRecord, Reader, Writer};
 
 use crate::config::{Config, create_transformer};
 use crate::transformer::{Transformer, Expression};
 
 
 fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
-    String::from("foo")
+    let mut value: Option<String> = None;
+
+    for expression in column.iter() {
+        value = expression.apply(value, record);
+    }
+
+    match value {
+        Some(content) => content,
+        None => String::new(),
+    }
 }
 
 
