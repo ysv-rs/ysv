@@ -13,6 +13,7 @@ use linked_hash_map::LinkedHashMap;
 pub enum Step {
     Input { input: String },
     Trim { trim: usize },
+    Operation(String),
 }
 
 
@@ -67,7 +68,12 @@ fn step_to_expression(
             }
         },
 
-        Step::Trim {trim} => Ok(Some(Expression::Slice { start: 0, end: *trim }))
+        Step::Trim {trim} => Ok(Some(Expression::Slice { start: 0, end: *trim })),
+        Step::Operation(value) => match value.as_str() {
+            "uppercase" => Ok(Some(Expression::Uppercase)),
+            "lowercase" => Ok(Some(Expression::Lowercase)),
+            _ => Err(format!("Unknown operation: '{}'", value))
+        },
     }
 }
 

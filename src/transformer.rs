@@ -4,6 +4,8 @@ use csv::{StringRecord, ByteRecord};
 pub enum Expression {
     Input(usize),
     Slice { start: usize, end: usize },
+    Uppercase,
+    Lowercase,
 }
 
 
@@ -28,8 +30,17 @@ impl Expression {
             Expression::Input(index) => Some(safe_to_utf8(&row[*index])),
             Expression::Slice { start, end } => match value {
                 Some(content) => Some(content),
-                None => None
-            }
+                None => None,
+            },
+
+            Expression::Lowercase => match value {
+                Some(content) => Some(content.to_lowercase()),
+                None => None,
+            },
+            Expression::Uppercase => match value {
+                Some(content) => Some(content.to_uppercase()),
+                None => None,
+            },
         }
     }
 }
