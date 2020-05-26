@@ -45,6 +45,7 @@ name = "csv-transform"
 version = "0.1.0"
 dependencies = [
  "csv",
+ "linked-hash-map",
  "serde",
  "serde_yaml",
 ]
@@ -72,6 +73,10 @@ name = "linked-hash-map"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8dd5a6d5999d9907cda8ed67bbd137d3af8085216c2ac62de5be860bd41f304a"
+dependencies = [
+ "serde",
+ "serde_test",
+]
 
 [[package]]
 name = "memchr"
@@ -130,6 +135,15 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "serde_test"
+version = "1.0.110"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1fa199410fc9763cda6edb0d85d4c4ba7c1723024cddc7d129d14a2fc9f2a5e6"
+dependencies = [
+ "serde",
 ]
 
 [[package]]

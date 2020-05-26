@@ -5,6 +5,7 @@ use std::collections::BTreeMap;
 use csv::StringRecord;
 
 use crate::transformer::{Transformer, Expression};
+use linked_hash_map::LinkedHashMap;
 
 
 #[derive(Debug, Deserialize)]
@@ -26,7 +27,7 @@ pub enum Column {
 #[derive(Debug, Deserialize)]
 pub struct Config {
     version: i8,
-    pub(crate) columns: BTreeMap<String, Column>,
+    pub(crate) columns: LinkedHashMap<String, Column>,
 }
 
 
