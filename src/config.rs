@@ -33,13 +33,13 @@ pub struct Config {
 
 
 pub fn parse_config_from_file(path: OsString) -> Result<Config, String> {
-    match fs::read_to_string(path) {
-        Ok(content) => match serde_yaml::from_str(&content) {
-            Ok(config) => Ok(config),
-            Err(err) => Err(format!("Could not parse YAML: {}", err.to_string()))
-        },
-        Err(err) => Err(format!("Cannot open config: {}", err.to_string()))
-    }
+    let content = fs::read_to_string(&path).expect(
+        "Cannot open configuration file."
+    );
+
+    Ok(serde_yaml::from_str(&content).expect(
+        "YAML config could not be parsed."
+    ))
 }
 
 
@@ -83,17 +83,18 @@ fn column_to_expressions(
     input_column_index_by_name: &BTreeMap<String, usize>,
 ) -> Result<Vec<Expression>, String> {
     match column {
-        Column::Input(input_column_name) => match step_to_expression(
-            &Step::Input {
-                input: input_column_name.clone(),
-            },
-            &input_column_index_by_name,
-        ) {
-            Ok(maybe_expression) => match maybe_expression {
+        Column::Input(input_column_name) => {
+            let maybe_some_expression = step_to_expression(
+                &Step::Input {
+                    input: input_column_name.clone(),
+                },
+                &input_column_index_by_name,
+            );
+
+            match maybe_some_expression? {
                 Some(expression) => Ok(vec![expression]),
                 None => Ok(vec![])
-            },
-            Err(err) => Err(err),
+            }
         },
 
         Column::Steps(steps) => {
@@ -105,12 +106,7 @@ fn column_to_expressions(
             ).collect();
             eprintln!("Maybe some expressions: {:?}", maybe_some_expressions);
 
-            match maybe_some_expressions {
-                Ok(some_expressions) => {
-                    Ok(some_expressions.into_iter().flatten().collect())
-                },
-                Err(err) => Err(err),
-            }
+            Ok(maybe_some_expressions?.into_iter().flatten().collect())
         }
     }
 }
@@ -129,8 +125,8 @@ pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Tra
 
     let headers = config.columns.keys().collect();
 
-    match maybe_columns {
-        Ok(columns) => Ok(Transformer { headers, columns }),
-        Err(err) => Err(err)
-    }
+    Ok(Transformer {
+        headers,
+        columns: maybe_columns?,
+    })
 }

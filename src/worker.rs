@@ -31,32 +31,24 @@ fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
 }
 
 
-pub fn process(config: Config) {
+pub fn process(config: Config) -> Result<(), String> {
     eprintln!("Using config: {:#?}", config);
 
     let mut reader = Reader::from_reader(io::stdin());
     let mut writer = Writer::from_writer(io::stdout());
 
-    let headers = reader.headers().expect("Where are my headers?!").clone();
+    let headers = reader.headers().unwrap().clone();
 
-    match create_transformer(&config, &headers) {
-        Ok(transformer) => {
-            eprintln!("Using transformer: {:#?}", transformer);
-            writer.write_record(&transformer.headers).expect("woo");
+    let transformer = create_transformer(&config, &headers)?;
 
-            for result in reader.byte_records() {
-                match result {
-                    Ok(record) => writer.write_record(&transform(
-                        record, &transformer,
-                    )).expect("boo!"),
-                    Err(err) => {
-                        eprintln!("ERROR reading CSV from <stdin>: {}", err);
-                    }
-                };
-            }
-        },
-        Err(err) => eprintln!("Cannot apply config: {}", err)
+    writer.write_record(&transformer.headers).unwrap();
+
+    for result in reader.byte_records() {
+        writer.write_record(&transform(
+            result.unwrap(),
+            &transformer,
+        )).expect("boo!");
     }
 
-    writer.flush().expect("cannot flush!");
+    Ok(writer.flush().unwrap())
 }

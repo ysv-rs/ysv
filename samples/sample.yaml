@@ -1,6 +1,8 @@
 version: 1
 columns:
-  vehicle__vin: "Auto VIN"
+  vehicle__vin:
+    - input: "Auto VIN"
+    - uppercase
   vehicle__year:
     - input: "Auto Year"
     - trim: 5
