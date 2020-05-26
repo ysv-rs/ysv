@@ -57,14 +57,17 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
 fn step_to_expression(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
-) -> Result<Expression, String> {
+) -> Result<Option<Expression>, String> {
     match step {
         Step::Input {input} => match input_column_index_by_name.get(input) {
-            Some(index) => Ok(Expression::Input(index.clone())),
-            None => Err(format!("Input column {} not found.", input))
+            Some(index) => Ok(Some(Expression::Input(index.clone()))),
+            None => {
+                eprintln!("Input column {} not found.", input);
+                Ok(None)
+            }
         },
 
-        Step::Trim {trim} => Ok(Expression::Slice { start: 0, end: *trim })
+        Step::Trim {trim} => Ok(Some(Expression::Slice { start: 0, end: *trim }))
     }
 }
 
@@ -80,13 +83,29 @@ fn column_to_expressions(
             },
             &input_column_index_by_name,
         ) {
-            Ok(expression) => Ok(vec![expression]),
+            Ok(maybe_expression) => match maybe_expression {
+                Some(expression) => Ok(vec![expression]),
+                None => Ok(vec![])
+            },
             Err(err) => Err(err),
         },
-        Column::Steps(steps) => steps.iter().map(|step| step_to_expression(
-            step,
-            &input_column_index_by_name,
-        )).collect()
+
+        Column::Steps(steps) => {
+            let maybe_some_expressions: Result<Vec<Option<Expression>>, String> = steps.iter().map(
+                |step| step_to_expression(
+                    step,
+                    &input_column_index_by_name,
+                ),
+            ).collect();
+            eprintln!("Maybe some expressions: {:?}", maybe_some_expressions);
+
+            match maybe_some_expressions {
+                Ok(some_expressions) => {
+                    Ok(some_expressions.into_iter().flatten().collect())
+                },
+                Err(err) => Err(err),
+            }
+        }
     }
 }
 

@@ -5,3 +5,5 @@ columns:
     - input: "Auto Year"
     - trim: 5
   vehicle__make: "Auto Make"
+  vehicle__model: "Auto Model"
+  new_or_used: "New Or Used"
