@@ -9,6 +9,58 @@ pub enum Expression {
 }
 
 
+pub struct Input(usize);
+
+pub struct Uppercase;
+pub struct Lowercase;
+
+pub struct Slice {
+    start: usize,
+    end: usize,
+}
+
+pub trait Expr {
+    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String>;
+}
+
+
+impl Expr for Input {
+    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
+        Some(safe_to_utf8(&row[self.0]))
+    }
+}
+
+
+impl Expr for Lowercase {
+    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
+        match value {
+            Some(string) => Some(string.to_lowercase()),
+            None => None,
+        }
+    }
+}
+
+
+impl Expr for Uppercase {
+    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
+        match value {
+            Some(string) => Some(string.to_uppercase()),
+            None => None,
+        }
+    }
+}
+
+
+impl Expr for Slice {
+    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
+        match value {
+            Some(content) => Some(content),
+            None => None,
+        }
+    }
+}
+
+
 #[derive(Debug)]
 pub struct Transformer {
     pub headers: StringRecord,
