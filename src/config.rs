@@ -13,6 +13,7 @@ use linked_hash_map::LinkedHashMap;
 pub enum Step {
     Input { input: String },
     Trim { trim: usize },
+    Replace { replace: LinkedHashMap<String, String> },
     Operation(String),
 }
 
@@ -69,6 +70,11 @@ fn step_to_expression(
         },
 
         Step::Trim {trim} => Ok(Some(Expression::Slice { start: 0, end: *trim })),
+
+        Step::Replace { replace } => Ok(Some(
+            Expression::Replace { replace: replace.clone() }
+        )),
+
         Step::Operation(value) => match value.as_str() {
             "uppercase" => Ok(Some(Expression::Uppercase)),
             "lowercase" => Ok(Some(Expression::Lowercase)),
@@ -104,7 +110,6 @@ fn column_to_expressions(
                     &input_column_index_by_name,
                 ),
             ).collect();
-            eprintln!("Maybe some expressions: {:?}", maybe_some_expressions);
 
             Ok(maybe_some_expressions?.into_iter().flatten().collect())
         }
@@ -114,7 +119,6 @@ fn column_to_expressions(
 
 pub fn create_transformer(config: &Config, headers: &StringRecord) -> Result<Transformer, String> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
-    eprintln!("Index by name: {:?}", input_columns_index_by_name);
 
     let maybe_columns: Result<Vec<Vec<Expression>>, String> = config.columns.values().map(
         |column| column_to_expressions(

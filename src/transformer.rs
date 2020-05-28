@@ -1,63 +1,13 @@
 use csv::{StringRecord, ByteRecord};
+use linked_hash_map::LinkedHashMap;
 
 #[derive(Debug)]
 pub enum Expression {
     Input(usize),
     Slice { start: usize, end: usize },
+    Replace { replace: LinkedHashMap<String, String> },
     Uppercase,
     Lowercase,
-}
-
-
-pub struct Input(usize);
-
-pub struct Uppercase;
-pub struct Lowercase;
-
-pub struct Slice {
-    start: usize,
-    end: usize,
-}
-
-pub trait Expr {
-    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String>;
-}
-
-
-impl Expr for Input {
-    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
-        Some(safe_to_utf8(&row[self.0]))
-    }
-}
-
-
-impl Expr for Lowercase {
-    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
-        match value {
-            Some(string) => Some(string.to_lowercase()),
-            None => None,
-        }
-    }
-}
-
-
-impl Expr for Uppercase {
-    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
-        match value {
-            Some(string) => Some(string.to_uppercase()),
-            None => None,
-        }
-    }
-}
-
-
-impl Expr for Slice {
-    fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
-        match value {
-            Some(content) => Some(content),
-            None => None,
-        }
-    }
 }
 
 
@@ -76,6 +26,17 @@ fn safe_to_utf8(bytes: &[u8]) -> String {
 }
 
 
+fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) -> String {
+    let mut result: String = value;
+
+    for (from, to) in mapping.iter() {
+        result = result.replace(from, to);
+    }
+
+    result
+}
+
+
 impl Expression {
     pub fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
         match self {
@@ -91,6 +52,11 @@ impl Expression {
             },
             Expression::Uppercase => match value {
                 Some(content) => Some(content.to_uppercase()),
+                None => None,
+            },
+
+            Expression::Replace { replace } => match value {
+                Some(content) => Some(replace_with_mapping(content, replace)),
                 None => None,
             },
         }
