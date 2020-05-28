@@ -1,5 +1,5 @@
 use std::io;
-use csv::{ByteRecord, Reader, Writer};
+use csv::{ByteRecord, Reader, Writer, ReaderBuilder};
 
 use crate::config::{Config, create_transformer};
 use crate::transformer::{Transformer, Expression};
@@ -32,9 +32,10 @@ fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
 
 
 pub fn process(config: Config) -> Result<(), String> {
-    eprintln!("Using config: {:#?}", config);
+    let mut reader = ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(io::stdin());
 
-    let mut reader = Reader::from_reader(io::stdin());
     let mut writer = Writer::from_writer(io::stdout());
 
     let headers = reader.headers().unwrap().clone();
@@ -44,10 +45,12 @@ pub fn process(config: Config) -> Result<(), String> {
     writer.write_record(&transformer.headers).unwrap();
 
     for result in reader.byte_records() {
+        let record = result.unwrap();
+
         writer.write_record(&transform(
-            result.unwrap(),
+            record,
             &transformer,
-        )).expect("boo!");
+        )).unwrap();
     }
 
     Ok(writer.flush().unwrap())

@@ -37,10 +37,18 @@ fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) 
 }
 
 
+fn input(row: &ByteRecord, index: &usize) -> Option<String> {
+    match row.get(*index) {
+        Some(bytes) => Some(safe_to_utf8(bytes)),
+        None => None,
+    }
+}
+
+
 impl Expression {
     pub fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
         match self {
-            Expression::Input(index) => Some(safe_to_utf8(&row[*index])),
+            Expression::Input(index) => input(row, index),
             Expression::Slice { start, end } => match value {
                 Some(content) => Some(content),
                 None => None,
