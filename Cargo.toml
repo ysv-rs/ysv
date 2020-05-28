@@ -1,5 +1,5 @@
 [package]
-name = "csv-transform"
+name = "ysv"
 version = "0.1.0"
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 edition = "2018"

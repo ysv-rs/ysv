@@ -41,16 +41,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "csv-transform"
-version = "0.1.0"
-dependencies = [
- "csv",
- "linked-hash-map",
- "serde",
- "serde_yaml",
-]
-
-[[package]]
 name = "dtoa"
 version = "0.4.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -182,4 +172,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "65923dd1784f44da1d2c3dbbc5e822045628c590ba72123e1c73d3c230c4434d"
 dependencies = [
  "linked-hash-map",
+]
+
+[[package]]
+name = "ysv"
+version = "0.1.0"
+dependencies = [
+ "csv",
+ "linked-hash-map",
+ "serde",
+ "serde_yaml",
 ]
