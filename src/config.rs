@@ -33,7 +33,7 @@ pub struct Config {
 }
 
 
-pub fn parse_config_from_file(path: OsString) -> Result<Config, String> {
+pub fn parse_config_from_file(path: &str) -> Result<Config, String> {
     let content = fs::read_to_string(&path).expect(
         "Cannot open configuration file."
     );
