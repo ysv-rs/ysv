@@ -2,6 +2,8 @@ mod config;
 mod worker;
 mod transformer;
 
+mod lib;
+
 use std::env;
 
 use worker::process;
