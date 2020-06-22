@@ -1,6 +1,11 @@
-# γsv
+# ysv
 
-γsv: clean and transform CSV data along your rules encoded in YAML format, lightning fast
+Stands for:
+
+* Yeti CSV
+* YAML driven CSV formatter
+
+Clean up and transform CSV data based your rules encoded in YAML format. Lightning fast.
 
 ## Usage
 

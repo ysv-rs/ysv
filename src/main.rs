@@ -51,9 +51,7 @@ fn run(file_path: &str) -> Result<(), PrintableError> {
     eprintln!("{}", file_path);
 
     let config = parse_config_from_file(file_path)?;
-
-    println!("{:#?}", config);
-
+    process(config);
     Ok(())
 }
 
