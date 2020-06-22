@@ -48,14 +48,13 @@ fn format_error(error: &PrintableError, format: &ErrorFormat) -> String {
 
 
 fn run(file_path: &str) -> Result<(), PrintableError> {
-    eprintln!("{}", file_path);
-
     let config = parse_config_from_file(file_path)?;
     process(config);
     Ok(())
 }
 
 
+// TODO: rename this function
 fn ysv(args: Vec<String>) -> Result<(), String> {
     let file_path_error = PrintableError {
         error_type: String::from("argument"),
