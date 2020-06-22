@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+build_sample() {
+    name=$1
+    dir=samples/${name}
+    env_file=${dir}/variables.env
+
+    set -o allexport
+    . ${env_file}
+    set +o allexport
+
+    cat ${dir}/input.csv | cargo run ${dir}/ysv.yaml > ${dir}/output.csv
+    cat ${dir}/output.csv
+}
+
+
+build_samples() {
+    for sample_name in $(ls samples); do
+        build_sample ${sample_name}
+    done
+}
+
+
+case $1 in
+all) build_samples
+   ;;
+*) build_sample $1
+    ;;
+esac
