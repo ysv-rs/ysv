@@ -1,0 +1,12 @@
+version: 1
+columns:
+  year:
+    - input: year
+  make:
+    - input: make
+    - uppercase
+    - replace:
+        MERCEDES-BENZ: MERCEDES
+  model:
+    - input: model
+    - uppercase
