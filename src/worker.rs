@@ -3,6 +3,7 @@ use csv::{ByteRecord, Reader, Writer, ReaderBuilder};
 
 use crate::config::{Config, create_transformer};
 use crate::transformer::{Transformer, Expression};
+use std::collections::HashMap;
 
 
 fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
@@ -31,7 +32,7 @@ fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
 }
 
 
-pub fn process(config: Config) -> Result<(), String> {
+pub fn process(config: Config, variables: HashMap<String, String>) -> Result<(), String> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
@@ -40,7 +41,7 @@ pub fn process(config: Config) -> Result<(), String> {
 
     let headers = reader.headers().unwrap().clone();
 
-    let transformer = create_transformer(&config, &headers)?;
+    let transformer = create_transformer(&config, &headers, &variables)?;
 
     writer.write_record(&transformer.headers).unwrap();
 
