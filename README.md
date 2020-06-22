@@ -2,18 +2,26 @@
 
 Stands for:
 
-* Yeti CSV
-* YAML driven CSV formatter
+* **Y**eti **CSV**
+* **Y**AML driven **CSV** formatter
 
 Clean up and transform CSV data based your rules encoded in YAML format. Lightning fast.
 
 ## Usage
 
-Right now, the only method to use the app is:
+Run the app against one of the samples:
 
 ```bash
-cat samples/extra_value.csv | cargo run samples/sample.yaml
+cat samples/vehicles/input.csv | cargo run samples/vehicles/ysv.yaml
 ```
+
+(check `output.csv` files in the `samples/*` directories.)
+
+## To rebuild samples:
+
+```bash
+./build-examples.sh
+``` 
 
 ## Disclaimer
 

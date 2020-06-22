@@ -1,0 +1,6 @@
+version: 1
+columns:
+  alice:
+    - input: header1
+  bob:
+    - input: header2
