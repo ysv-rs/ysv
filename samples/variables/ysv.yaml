@@ -1,9 +1,9 @@
 version: 1
 columns:
   organization:
-    - variable: institution
+    - var: institution
   time_period:
-    - variable: year
+    - var: year
   scientist:
     - input: name
   citation_index:

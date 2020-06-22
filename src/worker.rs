@@ -6,11 +6,15 @@ use crate::transformer::{Transformer, Expression};
 use std::collections::HashMap;
 
 
-fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
+fn apply_column(
+    column: &Vec<Expression>,
+    record: &ByteRecord,
+    variables: &HashMap<String, String>,
+) -> String {
     let mut value: Option<String> = None;
 
     for expression in column.iter() {
-        value = expression.apply(value, record);
+        value = expression.apply(value, record, variables);
     }
 
     match value {
@@ -20,11 +24,16 @@ fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
 }
 
 
-fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
+fn transform(
+    record: ByteRecord,
+    transformer: &Transformer,
+    variables: &HashMap<String, String>,
+) -> ByteRecord {
     let output: Vec<String> = transformer.columns.iter().map(
         |column| apply_column(
             column,
-            &record
+            &record,
+            &variables,
         )
     ).collect();
 
@@ -51,6 +60,7 @@ pub fn process(config: Config, variables: HashMap<String, String>) -> Result<(),
         writer.write_record(&transform(
             record,
             &transformer,
+            &variables,
         )).unwrap();
     }
 

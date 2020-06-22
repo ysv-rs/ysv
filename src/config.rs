@@ -15,6 +15,7 @@ pub enum Step {
     Input { input: String },
     Trim { trim: usize },
     Replace { replace: LinkedHashMap<String, String> },
+    Variable { var: String },
     Operation(String),
 }
 
@@ -75,6 +76,10 @@ fn step_to_expression(
 
         Step::Replace { replace } => Ok(Some(
             Expression::Replace { replace: replace.clone() }
+        )),
+
+        Step::Variable { var: variable } => Ok(Some(
+            Expression::Variable { name: variable.clone() }
         )),
 
         Step::Operation(value) => match value.as_str() {

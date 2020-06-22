@@ -1,11 +1,13 @@
 use csv::{StringRecord, ByteRecord};
 use linked_hash_map::LinkedHashMap;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub enum Expression {
     Input(usize),
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
+    Variable { name: String },
     Uppercase,
     Lowercase,
 }
@@ -46,7 +48,7 @@ fn input(row: &ByteRecord, index: &usize) -> Option<String> {
 
 
 impl Expression {
-    pub fn apply(&self, value: Option<String>, row: &ByteRecord) -> Option<String> {
+    pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &HashMap<String, String>) -> Option<String> {
         match self {
             Expression::Input(index) => input(row, index),
             Expression::Slice { start, end } => match value {
@@ -67,6 +69,12 @@ impl Expression {
                 Some(content) => Some(replace_with_mapping(content, replace)),
                 None => None,
             },
+
+            Expression::Variable { name } => match variables.get(name) {
+                // This is awfully dirty
+                Some(value) => Some(value.clone()),
+                None => Some(String::from("")),
+            }
         }
     }
 }
