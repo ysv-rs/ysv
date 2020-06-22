@@ -3,13 +3,18 @@ use csv::{ByteRecord, Reader, Writer, ReaderBuilder};
 
 use crate::config::{Config, create_transformer};
 use crate::transformer::{Transformer, Expression};
+use std::collections::HashMap;
 
 
-fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
+fn apply_column(
+    column: &Vec<Expression>,
+    record: &ByteRecord,
+    variables: &HashMap<String, String>,
+) -> String {
     let mut value: Option<String> = None;
 
     for expression in column.iter() {
-        value = expression.apply(value, record);
+        value = expression.apply(value, record, variables);
     }
 
     match value {
@@ -19,11 +24,16 @@ fn apply_column(column: &Vec<Expression>, record: &ByteRecord) -> String {
 }
 
 
-fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
+fn transform(
+    record: ByteRecord,
+    transformer: &Transformer,
+    variables: &HashMap<String, String>,
+) -> ByteRecord {
     let output: Vec<String> = transformer.columns.iter().map(
         |column| apply_column(
             column,
-            &record
+            &record,
+            &variables,
         )
     ).collect();
 
@@ -31,7 +41,7 @@ fn transform(record: ByteRecord, transformer: &Transformer) -> ByteRecord {
 }
 
 
-pub fn process(config: Config) -> Result<(), String> {
+pub fn process(config: Config, variables: HashMap<String, String>) -> Result<(), String> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
@@ -40,7 +50,7 @@ pub fn process(config: Config) -> Result<(), String> {
 
     let headers = reader.headers().unwrap().clone();
 
-    let transformer = create_transformer(&config, &headers)?;
+    let transformer = create_transformer(&config, &headers, &variables)?;
 
     writer.write_record(&transformer.headers).unwrap();
 
@@ -50,6 +60,7 @@ pub fn process(config: Config) -> Result<(), String> {
         writer.write_record(&transform(
             record,
             &transformer,
+            &variables,
         )).unwrap();
     }
 

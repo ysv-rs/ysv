@@ -1,0 +1,10 @@
+version: 1
+columns:
+  organization:
+    - var: institution
+  time_period:
+    - var: year
+  scientist:
+    - input: name
+  citation_index:
+    - input: citation_index

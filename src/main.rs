@@ -12,6 +12,7 @@ use worker::process;
 use config::parse_config_from_file;
 use serde::Serialize;
 use crate::printable_error::PrintableError;
+use std::collections::HashMap;
 
 
 const HELP: &str = r#"
@@ -46,10 +47,25 @@ fn format_error(error: &PrintableError, format: &ErrorFormat) -> String {
     }
 }
 
+// Fetch environment variables
+fn determine_variables() -> HashMap<String, String> {
+    let prefix = "YSV_VAR_";
+
+    env::vars().filter(
+        |(variable, value)| variable.starts_with(prefix)
+    ).map(
+        |(variable, value)| (
+            variable.replace(prefix, ""),
+            value,
+        )
+    ).collect()
+}
+
 
 fn run(file_path: &str) -> Result<(), PrintableError> {
+    let variables = determine_variables();
     let config = parse_config_from_file(file_path)?;
-    process(config);
+    process(config, variables);
     Ok(())
 }
 
