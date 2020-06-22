@@ -6,6 +6,7 @@ use csv::StringRecord;
 
 use crate::transformer::{Transformer, Expression};
 use linked_hash_map::LinkedHashMap;
+use crate::printable_error::PrintableError;
 
 
 #[derive(Debug, Deserialize)]
@@ -33,7 +34,7 @@ pub struct Config {
 }
 
 
-pub fn parse_config_from_file(path: &str) -> Result<Config, String> {
+pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
     let content = fs::read_to_string(&path).expect(
         "Cannot open configuration file."
     );

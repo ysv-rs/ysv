@@ -1,6 +1,7 @@
 mod config;
 mod worker;
 mod transformer;
+mod printable_error;
 use serde_json::json;
 
 mod lib;
@@ -10,6 +11,7 @@ use std::env;
 use worker::process;
 use config::parse_config_from_file;
 use serde::Serialize;
+use crate::printable_error::PrintableError;
 
 
 const HELP: &str = r#"
@@ -25,13 +27,6 @@ To get errors in JSON format for integration with other tools:
 
   cat original.csv | ysv --json-errors configuration.yaml > result.csv
 "#;
-
-
-#[derive(Debug, Serialize)]
-struct PrintableError {
-    error_type: String,
-    error_description: String,
-}
 
 
 enum ErrorFormat {
@@ -95,7 +90,7 @@ fn ysv(args: Vec<String>) -> Result<(), String> {
     match run(file_path) {
         Ok(_) => Ok(()),
         Err(err) => {
-            eprintln!(format_error(&err, &error_format));
+            eprintln!("{}", format_error(&err, &error_format));
             Ok(())
         }
     }
