@@ -1,0 +1,64 @@
+   Compiling ysv v0.1.0 (/home/anatoly/projects/ysv)
+warning: unused import: `std::ffi::OsString`
+ --> src/config.rs:2:5
+  |
+2 | use std::ffi::OsString;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `Reader`
+ --> src/worker.rs:2:23
+  |
+2 | use csv::{ByteRecord, Reader, Writer, ReaderBuilder};
+  |                       ^^^^^^
+
+warning: unused import: `serde::Serialize`
+  --> src/main.rs:13:5
+   |
+13 | use serde::Serialize;
+   |     ^^^^^^^^^^^^^^^^
+
+warning: unused variable: `value`
+  --> src/main.rs:55:21
+   |
+55 |         |(variable, value)| variable.starts_with(prefix)
+   |                     ^^^^^ help: consider prefixing with an underscore: `_value`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: unused variable: `variables`
+  --> src/config.rs:64:5
+   |
+64 |     variables: &HashMap<String, String>,
+   |     ^^^^^^^^^ help: consider prefixing with an underscore: `_variables`
+
+warning: unused variable: `err`
+  --> src/transformer.rs:26:13
+   |
+26 |         Err(err) => String::new(),
+   |             ^^^ help: consider prefixing with an underscore: `_err`
+
+warning: unused variable: `start`
+  --> src/transformer.rs:54:33
+   |
+54 |             Expression::Slice { start, end } => match value {
+   |                                 ^^^^^ help: try ignoring the field: `start: _`
+
+warning: unused variable: `end`
+  --> src/transformer.rs:54:40
+   |
+54 |             Expression::Slice { start, end } => match value {
+   |                                        ^^^ help: try ignoring the field: `end: _`
+
+warning: unused `std::result::Result` that must be used
+  --> src/main.rs:68:5
+   |
+68 |     process(config, variables);
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_must_use)]` on by default
+   = note: this `Result` may be an `Err` variant, which should be handled
+
+    Finished dev [unoptimized + debuginfo] target(s) in 0.88s
+     Running `target/debug/ysv samples/vehicles/ysv.yaml`
