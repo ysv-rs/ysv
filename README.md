@@ -3,9 +3,9 @@
 Stands for:
 
 * **Y**eti **CSV**
-* **Y**AML driven **CSV** formatter
+* or, **Y**AML driven **CSV** formatter
 
-Clean up and transform CSV data based your rules encoded in YAML format. Lightning fast.
+Clean up and transform CSV data as specified by a YAML formatted config file. Lightning fast.
 
 ## Usage
 
@@ -17,10 +17,14 @@ cat samples/vehicles/input.csv | cargo run samples/vehicles/ysv.yaml
 
 (check `output.csv` files in the `samples/*` directories.)
 
-## To rebuild samples:
+## Documentation
+
+[View docs.](docs/index.md)
+
+## To rebuild a sample:
 
 ```bash
-./build-examples.sh
+./sample vehicles
 ``` 
 
 ## Disclaimer
