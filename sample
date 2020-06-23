@@ -9,7 +9,7 @@ build_sample() {
     . ${env_file}
     set +o allexport
 
-    cat ${dir}/input.csv | cargo run ${dir}/ysv.yaml > ${dir}/output.csv
+    cat ${dir}/input.csv | cargo run ${dir}/ysv.yaml > ${dir}/output.csv 2>${dir}/errors.log
     cat ${dir}/output.csv
 }
 
