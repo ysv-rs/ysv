@@ -41,7 +41,7 @@ fn transform(
 }
 
 
-pub fn process(config: Config, variables: HashMap<String, String>) -> Result<(), String> {
+pub fn process(options: Options) -> Result<(), String> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
