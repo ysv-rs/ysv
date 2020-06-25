@@ -23,7 +23,7 @@ pub struct Transformer {
 fn safe_to_utf8(bytes: &[u8]) -> String {
     match String::from_utf8(bytes.to_vec()) {
         Ok(value) => value,
-        Err(err) => String::new(),
+        Err(_err) => String::new(),
     }
 }
 
@@ -51,7 +51,7 @@ impl Expression {
     pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &HashMap<String, String>) -> Option<String> {
         match self {
             Expression::Input(index) => input(row, index),
-            Expression::Slice { start, end } => match value {
+            Expression::Slice { start: _start, end: _end } => match value {
                 Some(content) => Some(content),
                 None => None,
             },

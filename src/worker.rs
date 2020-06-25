@@ -1,5 +1,5 @@
 use std::io;
-use csv::{ByteRecord, Reader, Writer, ReaderBuilder};
+use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::config::{Config, create_transformer};
 use crate::transformer::{Transformer, Expression};
@@ -50,7 +50,7 @@ pub fn process(config: Config, variables: HashMap<String, String>) -> Result<(),
 
     let headers = reader.headers().unwrap().clone();
 
-    let transformer = create_transformer(&config, &headers, &variables)?;
+    let transformer = create_transformer(&config, &headers)?;
 
     writer.write_record(&transformer.headers).unwrap();
 

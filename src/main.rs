@@ -10,7 +10,6 @@ use std::env;
 
 use worker::process;
 use config::parse_config_from_file;
-use serde::Serialize;
 use crate::printable_error::PrintableError;
 use std::collections::HashMap;
 
@@ -52,7 +51,7 @@ fn determine_variables() -> HashMap<String, String> {
     let prefix = "YSV_VAR_";
 
     env::vars().filter(
-        |(variable, value)| variable.starts_with(prefix)
+        |(variable, _)| variable.starts_with(prefix)
     ).map(
         |(variable, value)| (
             variable.replace(prefix, ""),
@@ -65,8 +64,15 @@ fn determine_variables() -> HashMap<String, String> {
 fn run(file_path: &str) -> Result<(), PrintableError> {
     let variables = determine_variables();
     let config = parse_config_from_file(file_path)?;
-    process(config, variables);
-    Ok(())
+
+    match process(config, variables) {
+        Ok(()) => Ok(()),
+        Err(err) => Err(PrintableError {
+            error_type: String::from("unknown"),
+            error_description: err,
+        })
+    }
+
 }
 
 

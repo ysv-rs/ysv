@@ -1,7 +1,6 @@
 use std::fs;
-use std::ffi::OsString;
 use serde::Deserialize;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
 use csv::StringRecord;
 
 use crate::transformer::{Transformer, Expression};
@@ -61,7 +60,6 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
 fn step_to_expression(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
-    variables: &HashMap<String, String>,
 ) -> Result<Option<Expression>, String> {
     match step {
         Step::Input {input} => match input_column_index_by_name.get(input) {
@@ -94,7 +92,6 @@ fn step_to_expression(
 fn column_to_expressions(
     column: &Column,
     input_column_index_by_name: &BTreeMap<String, usize>,
-    variables: &HashMap<String, String>,
 ) -> Result<Vec<Expression>, String> {
     match column {
         Column::Input(input_column_name) => {
@@ -103,7 +100,6 @@ fn column_to_expressions(
                     input: input_column_name.clone(),
                 },
                 &input_column_index_by_name,
-                &variables,
             );
 
             match maybe_some_expression? {
@@ -117,7 +113,6 @@ fn column_to_expressions(
                 |step| step_to_expression(
                     step,
                     &input_column_index_by_name,
-                    &variables,
                 ),
             ).collect();
 
@@ -130,7 +125,6 @@ fn column_to_expressions(
 pub fn create_transformer(
     config: &Config,
     headers: &StringRecord,
-    variables: &HashMap<String, String>,
 ) -> Result<Transformer, String> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
@@ -138,7 +132,6 @@ pub fn create_transformer(
         |column| column_to_expressions(
             column,
             &input_columns_index_by_name,
-            &variables,
         ),
     ).collect();
 
