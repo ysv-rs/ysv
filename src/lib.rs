@@ -7,15 +7,10 @@ mod printable_error;
 use serde_json::json;
 use std::env;
 
-// use config::parse_config_from_file;
-
-// use worker::process;
-// use super::worker::process;
 use crate::worker::process;
 
-// use crate::worker::process;
 use crate::printable_error::PrintableError;
-use crate::config::{Config, parse_config_from_file};
+use crate::config::parse_config_from_file;
 use crate::options::{Options, ErrorFormat, Variables};
 
 
@@ -61,6 +56,7 @@ fn determine_variables() -> Variables {
 
 
 fn get_options(args: Vec<String>) -> Result<Options, String> {
+    let error_format = ErrorFormat::JSON;
     let first_argument = args.get(1);
 
     if let None = first_argument {
@@ -68,13 +64,15 @@ fn get_options(args: Vec<String>) -> Result<Options, String> {
     }
 
     let variables = determine_variables();
-    let config = parse_config_from_file(first_argument.unwrap())?;
 
-    Ok(Options {
-        error_format: ErrorFormat::JSON,
-        config,
-        variables,
-    })
+    let config_result = parse_config_from_file(
+        first_argument.unwrap(),
+    );
+
+    match config_result {
+        Ok(config) => Ok(Options { error_format, config, variables }),
+        Err(err) => Err(format_error(&err, &error_format))
+    }
 }
 
 
@@ -92,10 +90,9 @@ fn is_help(args: &Vec<String>) -> bool {
 pub fn run(args: Vec<String>) -> Result<(), String> {
     if is_help(&args) {
         eprintln!("{}", HELP);
+        Ok(())
     } else {
         let options = get_options(args)?;
         process(options)
     }
-
-    Ok(())
 }

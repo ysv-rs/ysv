@@ -1,15 +1,15 @@
 use std::io;
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
-use crate::config::{Config, create_transformer};
+use crate::config::create_transformer;
 use crate::transformer::{Transformer, Expression};
-use std::collections::HashMap;
+use crate::options::{Options, Variables};
 
 
 fn apply_column(
     column: &Vec<Expression>,
     record: &ByteRecord,
-    variables: &HashMap<String, String>,
+    variables: &Variables,
 ) -> String {
     let mut value: Option<String> = None;
 
@@ -27,7 +27,7 @@ fn apply_column(
 fn transform(
     record: ByteRecord,
     transformer: &Transformer,
-    variables: &HashMap<String, String>,
+    variables: &Variables,
 ) -> ByteRecord {
     let output: Vec<String> = transformer.columns.iter().map(
         |column| apply_column(
@@ -50,7 +50,10 @@ pub fn process(options: Options) -> Result<(), String> {
 
     let headers = reader.headers().unwrap().clone();
 
-    let transformer = create_transformer(&config, &headers)?;
+    let transformer = create_transformer(
+        &options.config,
+        &headers,
+    )?;
 
     writer.write_record(&transformer.headers).unwrap();
 
@@ -60,7 +63,7 @@ pub fn process(options: Options) -> Result<(), String> {
         writer.write_record(&transform(
             record,
             &transformer,
-            &variables,
+            &options.variables,
         )).unwrap();
     }
 
