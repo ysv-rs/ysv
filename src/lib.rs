@@ -1,10 +1,19 @@
+mod worker;
+mod options;
+mod config;
+mod transformer;
+mod printable_error;
+
 use serde_json::json;
 use std::env;
 
-use worker::process;
-use config::parse_config_from_file;
+// use config::parse_config_from_file;
 
+// use worker::process;
+// use super::worker::process;
 use crate::worker::process;
+
+// use crate::worker::process;
 use crate::printable_error::PrintableError;
 use crate::config::{Config, parse_config_from_file};
 use crate::options::{Options, ErrorFormat, Variables};
