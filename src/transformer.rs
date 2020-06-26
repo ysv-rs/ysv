@@ -1,6 +1,6 @@
 use csv::{StringRecord, ByteRecord};
 use linked_hash_map::LinkedHashMap;
-use std::collections::HashMap;
+use crate::options::Variables;
 
 #[derive(Debug)]
 pub enum Expression {
@@ -23,7 +23,7 @@ pub struct Transformer {
 fn safe_to_utf8(bytes: &[u8]) -> String {
     match String::from_utf8(bytes.to_vec()) {
         Ok(value) => value,
-        Err(err) => String::new(),
+        Err(_err) => String::new(),
     }
 }
 
@@ -48,10 +48,10 @@ fn input(row: &ByteRecord, index: &usize) -> Option<String> {
 
 
 impl Expression {
-    pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &HashMap<String, String>) -> Option<String> {
+    pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &Variables) -> Option<String> {
         match self {
             Expression::Input(index) => input(row, index),
-            Expression::Slice { start, end } => match value {
+            Expression::Slice { start: _start, end: _end } => match value {
                 Some(content) => Some(content),
                 None => None,
             },
