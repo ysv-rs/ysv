@@ -83,7 +83,7 @@ fn step_to_expression(
         Step::Operation(value) => match value.as_str() {
             "uppercase" => Ok(Some(Expression::Uppercase)),
             "lowercase" => Ok(Some(Expression::Lowercase)),
-            _ => Err(format!("Unknown operation: '{}'", value))
+            _ => Err("unknown_operation".to_string())
         },
     }
 }
