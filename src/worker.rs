@@ -4,6 +4,7 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 use crate::config::create_transformer;
 use crate::transformer::{Transformer, Expression};
 use crate::options::{Options, Variables};
+use crate::printable_error::ConfigParseError;
 
 
 fn apply_column(
@@ -50,10 +51,16 @@ pub fn process(options: Options) -> Result<(), String> {
 
     let headers = reader.headers().unwrap().clone();
 
-    let transformer = create_transformer(
+    let maybe_transformer = create_transformer(
         &options.config,
         &headers,
-    )?;
+    );
+
+    if let Err(err) = maybe_transformer {
+        return Err(err.error_description);
+    }
+
+    let transformer = maybe_transformer.unwrap();
 
     writer.write_record(&transformer.headers).unwrap();
 

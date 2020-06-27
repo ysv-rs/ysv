@@ -10,7 +10,8 @@ pub struct PrintableError {
 
 #[derive(Debug, Serialize)]
 pub struct ConfigParseError {
-    pub column_name: String,
+    pub column: Option<String>,
+    pub transformation: Option<String>,
     pub error_type: String,
     pub error_description: String,
 }
