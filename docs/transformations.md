@@ -22,6 +22,24 @@ output_column:
 
 Fills `output_column` with the value of environment variable named `YSV_VAR_current_user`.
 
+### value
+
+```yaml
+output_column:
+  - value: "hello world!"
+```
+
+Fills every cell of `output_column` with a hardcoded string value.
+
+### line-number
+
+```yaml
+output_column:
+  - line-number
+```
+
+Fills `output_column` with line number, counted from 1.
+
 ## Operations
 
 ### uppercase
@@ -57,5 +75,3 @@ output_column:
 Accepts a mapping. Searches for every string and replaces it.
 
 Does not support regular expressions for now.
-
-
