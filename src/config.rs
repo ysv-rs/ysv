@@ -19,6 +19,7 @@ pub enum Step {
     Trim { trim: usize },
     Replace { replace: LinkedHashMap<String, String> },
     Variable { var: String },
+    Value { value: String },
     Operation(String),
 }
 
@@ -115,6 +116,10 @@ fn step_to_expression(
 
         Step::Variable { var: variable } => Ok(Some(
             Transformation::Variable { name: variable.clone() }
+        )),
+
+        Step::Value { value: value } => Ok(Some(
+            Transformation::Value { value: value.clone() }
         )),
 
         Step::Operation(value) => transformation_without_parameters(

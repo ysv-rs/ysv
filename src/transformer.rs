@@ -8,6 +8,7 @@ pub enum Transformation {
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
     Variable { name: String },
+    Value { value: String },
     Uppercase,
     Lowercase,
     LineNumber,
@@ -87,6 +88,8 @@ impl Transformation {
                 Some(value) => Some(value.clone()),
                 None => Some(String::from("")),
             },
+
+            Transformation::Value { value } => Some(value.clone()),
 
             Transformation::LineNumber => apply_line_number(line_number),
         }
