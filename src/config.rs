@@ -3,13 +3,13 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use csv::StringRecord;
 
-use crate::transformer::{Transformer, Expression};
+use crate::transformer::{Transformer, Transformation};
 use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 
 type InputColumnIndexByName = BTreeMap<String, usize>;
 
-type MaybeSomeTransformation = Result<Option<Expression>, ConfigParseError>;
+type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
 
 
 #[derive(Debug, Deserialize)]
@@ -70,7 +70,7 @@ fn input_transformation(
     );
 
     match input_column_index {
-        Some(index) => Ok(Some(Expression::Input(index.clone()))),
+        Some(index) => Ok(Some(Transformation::Input(index.clone()))),
         None => {
             // FIXME this should not be here
             eprintln!("Warning: input column {} not found.", input_column_name);
@@ -84,9 +84,9 @@ fn transformation_without_parameters(
     transformation_name: &String,
 ) -> MaybeSomeTransformation {
     match transformation_name.as_str() {
-        "uppercase" => Ok(Some(Expression::Uppercase)),
-        "lowercase" => Ok(Some(Expression::Lowercase)),
-        "line-number" => Ok(Some(Expression::LineNumber)),
+        "uppercase" => Ok(Some(Transformation::Uppercase)),
+        "lowercase" => Ok(Some(Transformation::Lowercase)),
+        "line-number" => Ok(Some(Transformation::LineNumber)),
         _ => Err(ConfigParseError {
             column: None,
             transformation: Some(transformation_name.clone()),
@@ -100,21 +100,21 @@ fn transformation_without_parameters(
 fn step_to_expression(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
-) -> Result<Option<Expression>, ConfigParseError> {
+) -> Result<Option<Transformation>, ConfigParseError> {
     match step {
         Step::Input {input} => input_transformation(
             input,
             input_column_index_by_name,
         ),
 
-        Step::Trim {trim} => Ok(Some(Expression::Slice { start: 0, end: *trim })),
+        Step::Trim {trim} => Ok(Some(Transformation::Slice { start: 0, end: *trim })),
 
         Step::Replace { replace } => Ok(Some(
-            Expression::Replace { replace: replace.clone() }
+            Transformation::Replace { replace: replace.clone() }
         )),
 
         Step::Variable { var: variable } => Ok(Some(
-            Expression::Variable { name: variable.clone() }
+            Transformation::Variable { name: variable.clone() }
         )),
 
         Step::Operation(value) => transformation_without_parameters(
@@ -127,7 +127,7 @@ fn step_to_expression(
 fn shorthand_input_to_expressions(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
-) -> Result<Vec<Expression>, ConfigParseError> {
+) -> Result<Vec<Transformation>, ConfigParseError> {
     let step = Step::Input {
         input: input_column_name.clone(),
     };
@@ -150,7 +150,7 @@ fn shorthand_input_to_expressions(
 fn steps_to_expressions(
     steps: &Vec<Step>,
     input_column_index_by_name: &InputColumnIndexByName,
-) -> Result<Vec<Expression>, ConfigParseError> {
+) -> Result<Vec<Transformation>, ConfigParseError> {
     let mapped_steps = steps.iter().map(
         |step| step_to_expression(
             step,
@@ -158,7 +158,7 @@ fn steps_to_expressions(
         ),
     );
 
-    let maybe_some_expressions: Result<Vec<Option<Expression>>, ConfigParseError> = mapped_steps.collect();
+    let maybe_some_expressions: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
 
     Ok(maybe_some_expressions?.into_iter().flatten().collect())
 }
@@ -167,7 +167,7 @@ fn steps_to_expressions(
 fn column_to_expressions(
     column: &Column,
     input_column_index_by_name: &InputColumnIndexByName,
-) -> Result<Vec<Expression>, ConfigParseError> {
+) -> Result<Vec<Transformation>, ConfigParseError> {
     match column {
         Column::Input(input_column_name) => shorthand_input_to_expressions(
             input_column_name,
@@ -188,7 +188,7 @@ pub fn create_transformer(
 ) -> Result<Transformer, ConfigParseError> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
-    let maybe_columns: Result<Vec<Vec<Expression>>, ConfigParseError> = config.columns.values().map(
+    let maybe_columns: Result<Vec<Vec<Transformation>>, ConfigParseError> = config.columns.values().map(
         |column| column_to_expressions(
             column,
             &input_columns_index_by_name,

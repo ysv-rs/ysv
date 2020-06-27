@@ -3,7 +3,7 @@ use linked_hash_map::LinkedHashMap;
 use crate::options::Variables;
 
 #[derive(Debug)]
-pub enum Expression {
+pub enum Transformation {
     Input(usize),
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
@@ -17,7 +17,7 @@ pub enum Expression {
 #[derive(Debug)]
 pub struct Transformer {
     pub headers: StringRecord,
-    pub columns: Vec<Vec<Expression>>,
+    pub columns: Vec<Vec<Transformation>>,
 }
 
 
@@ -53,36 +53,36 @@ fn apply_line_number(line_number: u32) -> Option<String> {
 }
 
 
-impl Expression {
+impl Transformation {
     pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &Variables) -> Option<String> {
         match self {
-            Expression::Input(index) => input(row, index),
-            Expression::Slice { start: _start, end: _end } => match value {
+            Transformation::Input(index) => input(row, index),
+            Transformation::Slice { start: _start, end: _end } => match value {
                 Some(content) => Some(content),
                 None => None,
             },
 
-            Expression::Lowercase => match value {
+            Transformation::Lowercase => match value {
                 Some(content) => Some(content.to_lowercase()),
                 None => None,
             },
-            Expression::Uppercase => match value {
+            Transformation::Uppercase => match value {
                 Some(content) => Some(content.to_uppercase()),
                 None => None,
             },
 
-            Expression::Replace { replace } => match value {
+            Transformation::Replace { replace } => match value {
                 Some(content) => Some(replace_with_mapping(content, replace)),
                 None => None,
             },
 
-            Expression::Variable { name } => match variables.get(name) {
+            Transformation::Variable { name } => match variables.get(name) {
                 // This is awfully dirty
                 Some(value) => Some(value.clone()),
                 None => Some(String::from("")),
             },
 
-            Expression::LineNumber => apply_line_number(0),
+            Transformation::LineNumber => apply_line_number(0),
         }
     }
 }

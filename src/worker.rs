@@ -2,12 +2,12 @@ use std::io;
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::config::create_transformer;
-use crate::transformer::{Transformer, Expression};
+use crate::transformer::{Transformer, Transformation};
 use crate::options::{Options, Variables};
 
 
 fn apply_column(
-    column: &Vec<Expression>,
+    column: &Vec<Transformation>,
     record: &ByteRecord,
     variables: &Variables,
 ) -> String {
