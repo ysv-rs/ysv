@@ -7,7 +7,6 @@ pub enum Transformation {
     Input(usize),
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
-    Variable { name: String },
     Value { value: String },
     Uppercase,
     Lowercase,
@@ -81,12 +80,6 @@ impl Transformation {
             Transformation::Replace { replace } => match value {
                 Some(content) => Some(replace_with_mapping(content, replace)),
                 None => None,
-            },
-
-            Transformation::Variable { name } => match variables.get(name) {
-                // This is awfully dirty
-                Some(value) => Some(value.clone()),
-                None => Some(String::from("")),
             },
 
             Transformation::Value { value } => Some(value.clone()),

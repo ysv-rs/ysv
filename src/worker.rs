@@ -59,6 +59,7 @@ pub fn process(options: Options) -> Result<(), String> {
     let maybe_transformer = create_transformer(
         &options.config,
         &headers,
+        &options.variables,
     );
 
     if let Err(err) = maybe_transformer {
