@@ -6,15 +6,19 @@ use crate::transformer::{Transformer, Transformation};
 use crate::options::{Options, Variables};
 
 
-fn apply_column(
-    column: &Vec<Transformation>,
+type TransformationsChain = Vec<Transformation>;
+
+
+fn apply_transformations_chain(
+    transformations_chain: &TransformationsChain,
     record: &ByteRecord,
     variables: &Variables,
+    line_number: usize,
 ) -> String {
     let mut value: Option<String> = None;
 
-    for expression in column.iter() {
-        value = expression.apply(value, record, variables);
+    for transformation in transformations_chain.iter() {
+        value = transformation.apply(value, record, variables, line_number);
     }
 
     match value {
@@ -28,12 +32,14 @@ fn transform(
     record: ByteRecord,
     transformer: &Transformer,
     variables: &Variables,
+    line_number: usize,
 ) -> ByteRecord {
     let output: Vec<String> = transformer.columns.iter().map(
-        |column| apply_column(
+        |column| apply_transformations_chain(
             column,
             &record,
             &variables,
+            line_number,
         )
     ).collect();
 
@@ -63,13 +69,14 @@ pub fn process(options: Options) -> Result<(), String> {
 
     writer.write_record(&transformer.headers).unwrap();
 
-    for result in reader.byte_records() {
+    for (line_number, result) in reader.byte_records().enumerate() {
         let record = result.unwrap();
 
         writer.write_record(&transform(
             record,
             &transformer,
             &options.variables,
+            line_number + 1,
         )).unwrap();
     }
 

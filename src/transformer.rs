@@ -48,13 +48,19 @@ fn input(row: &ByteRecord, index: &usize) -> Option<String> {
 }
 
 
-fn apply_line_number(line_number: u32) -> Option<String> {
+fn apply_line_number(line_number: usize) -> Option<String> {
     Some(line_number.to_string())
 }
 
 
 impl Transformation {
-    pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &Variables) -> Option<String> {
+    pub fn apply(
+        &self,
+        value: Option<String>,
+        row: &ByteRecord,
+        variables: &Variables,
+        line_number: usize,
+    ) -> Option<String> {
         match self {
             Transformation::Input(index) => input(row, index),
             Transformation::Slice { start: _start, end: _end } => match value {
@@ -82,7 +88,7 @@ impl Transformation {
                 None => Some(String::from("")),
             },
 
-            Transformation::LineNumber => apply_line_number(0),
+            Transformation::LineNumber => apply_line_number(line_number),
         }
     }
 }
