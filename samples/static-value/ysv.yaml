@@ -1,0 +1,5 @@
+version: 1
+columns:
+  author:
+    - value: "Terry Pratchett"
+  title: "book name"

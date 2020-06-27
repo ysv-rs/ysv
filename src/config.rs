@@ -6,6 +6,7 @@ use csv::StringRecord;
 use crate::transformer::{Transformer, Transformation};
 use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
+use crate::options::Variables;
 
 type InputColumnIndexByName = BTreeMap<String, usize>;
 
@@ -19,6 +20,7 @@ pub enum Step {
     Trim { trim: usize },
     Replace { replace: LinkedHashMap<String, String> },
     Variable { var: String },
+    Value { value: String },
     Operation(String),
 }
 
@@ -97,9 +99,23 @@ fn transformation_without_parameters(
 }
 
 
-fn step_to_expression(
+fn variable_transformation(
+    name: &String,
+    variables: &Variables,
+) -> MaybeSomeTransformation {
+    let value = match variables.get(name) {
+        Some(value) => value.clone(),
+        None => "".to_string(),
+    };
+
+    Ok(Some(Transformation::Value { value }))
+}
+
+
+fn step_to_transformation(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
+    variables: &Variables,
 ) -> Result<Option<Transformation>, ConfigParseError> {
     match step {
         Step::Input {input} => input_transformation(
@@ -113,8 +129,13 @@ fn step_to_expression(
             Transformation::Replace { replace: replace.clone() }
         )),
 
-        Step::Variable { var: variable } => Ok(Some(
-            Transformation::Variable { name: variable.clone() }
+        Step::Variable { var: variable } => variable_transformation(
+            variable,
+            variables,
+        ),
+
+        Step::Value { value } => Ok(Some(
+            Transformation::Value { value: value.clone() }
         )),
 
         Step::Operation(value) => transformation_without_parameters(
@@ -127,14 +148,16 @@ fn step_to_expression(
 fn shorthand_input_to_expressions(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
+    variables: &Variables,
 ) -> Result<Vec<Transformation>, ConfigParseError> {
     let step = Step::Input {
         input: input_column_name.clone(),
     };
 
-    let maybe_some_expression = step_to_expression(
+    let maybe_some_expression = step_to_transformation(
         &step,
         input_column_index_by_name,
+        variables,
     );
 
     match maybe_some_expression {
@@ -150,11 +173,13 @@ fn shorthand_input_to_expressions(
 fn steps_to_expressions(
     steps: &Vec<Step>,
     input_column_index_by_name: &InputColumnIndexByName,
+    variables: &Variables,
 ) -> Result<Vec<Transformation>, ConfigParseError> {
     let mapped_steps = steps.iter().map(
-        |step| step_to_expression(
+        |step| step_to_transformation(
             step,
             &input_column_index_by_name,
+            &variables,
         ),
     );
 
@@ -167,16 +192,19 @@ fn steps_to_expressions(
 fn column_to_expressions(
     column: &Column,
     input_column_index_by_name: &InputColumnIndexByName,
+    variables: &Variables,
 ) -> Result<Vec<Transformation>, ConfigParseError> {
     match column {
         Column::Input(input_column_name) => shorthand_input_to_expressions(
             input_column_name,
             input_column_index_by_name,
+            variables,
         ),
 
         Column::Steps(steps) => steps_to_expressions(
             steps,
             input_column_index_by_name,
+            variables,
         ),
     }
 }
@@ -185,6 +213,7 @@ fn column_to_expressions(
 pub fn create_transformer(
     config: &Config,
     headers: &StringRecord,
+    variables: &Variables,
 ) -> Result<Transformer, ConfigParseError> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
@@ -192,6 +221,7 @@ pub fn create_transformer(
         |column| column_to_expressions(
             column,
             &input_columns_index_by_name,
+            variables,
         ),
     ).collect();
 

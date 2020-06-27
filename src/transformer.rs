@@ -7,7 +7,7 @@ pub enum Transformation {
     Input(usize),
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
-    Variable { name: String },
+    Value { value: String },
     Uppercase,
     Lowercase,
     LineNumber,
@@ -58,7 +58,6 @@ impl Transformation {
         &self,
         value: Option<String>,
         row: &ByteRecord,
-        variables: &Variables,
         line_number: usize,
     ) -> Option<String> {
         match self {
@@ -82,11 +81,7 @@ impl Transformation {
                 None => None,
             },
 
-            Transformation::Variable { name } => match variables.get(name) {
-                // This is awfully dirty
-                Some(value) => Some(value.clone()),
-                None => Some(String::from("")),
-            },
+            Transformation::Value { value } => Some(value.clone()),
 
             Transformation::LineNumber => apply_line_number(line_number),
         }
