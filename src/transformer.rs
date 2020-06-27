@@ -10,6 +10,7 @@ pub enum Expression {
     Variable { name: String },
     Uppercase,
     Lowercase,
+    LineNumber,
 }
 
 

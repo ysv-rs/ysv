@@ -9,6 +9,8 @@ use crate::printable_error::{PrintableError, ConfigParseError};
 
 type InputColumnIndexByName = BTreeMap<String, usize>;
 
+type MaybeSomeTransformation = Result<Option<Expression>, ConfigParseError>;
+
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
@@ -59,9 +61,6 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
 }
 
 
-type MaybeSomeTransformation = Result<Option<Expression>, ConfigParseError>;
-
-
 fn input_transformation(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
@@ -77,6 +76,23 @@ fn input_transformation(
             eprintln!("Warning: input column {} not found.", input_column_name);
             Ok(None)
         }
+    }
+}
+
+
+fn transformation_without_parameters(
+    transformation_name: &String,
+) -> MaybeSomeTransformation {
+    match transformation_name.as_str() {
+        "uppercase" => Ok(Some(Expression::Uppercase)),
+        "lowercase" => Ok(Some(Expression::Lowercase)),
+        "line-number" => Ok(Some(Expression::LineNumber)),
+        _ => Err(ConfigParseError {
+            column: None,
+            transformation: Some(transformation_name.clone()),
+            error_type: "unknown-transformation".to_string(),
+            error_description: "This transformation is not supported. Please refer to documentation for the list of supported transformations.".to_string()
+        })
     }
 }
 
@@ -101,16 +117,9 @@ fn step_to_expression(
             Expression::Variable { name: variable.clone() }
         )),
 
-        Step::Operation(value) => match value.as_str() {
-            "uppercase" => Ok(Some(Expression::Uppercase)),
-            "lowercase" => Ok(Some(Expression::Lowercase)),
-            _ => Err(ConfigParseError {
-                column: None,
-                transformation: Some(value.clone()),
-                error_type: "unknown-transformation".to_string(),
-                error_description: "Transformation is not supported. Please refer to documentation for the list of supported transformations.".to_string()
-            })
-        },
+        Step::Operation(value) => transformation_without_parameters(
+            value,
+        )
     }
 }
 
