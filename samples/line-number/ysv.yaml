@@ -1,0 +1,6 @@
+version: 1
+columns:
+  id:
+    - line-number
+  word:
+    - input: word
