@@ -98,7 +98,7 @@ fn transformation_without_parameters(
 }
 
 
-fn step_to_expression(
+fn step_to_transformation(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
 ) -> Result<Option<Transformation>, ConfigParseError> {
@@ -137,7 +137,7 @@ fn shorthand_input_to_expressions(
         input: input_column_name.clone(),
     };
 
-    let maybe_some_expression = step_to_expression(
+    let maybe_some_expression = step_to_transformation(
         &step,
         input_column_index_by_name,
     );
@@ -157,7 +157,7 @@ fn steps_to_expressions(
     input_column_index_by_name: &InputColumnIndexByName,
 ) -> Result<Vec<Transformation>, ConfigParseError> {
     let mapped_steps = steps.iter().map(
-        |step| step_to_expression(
+        |step| step_to_transformation(
             step,
             &input_column_index_by_name,
         ),
