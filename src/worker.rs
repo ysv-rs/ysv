@@ -4,7 +4,6 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 use crate::config::create_transformer;
 use crate::transformer::{Transformer, Expression};
 use crate::options::{Options, Variables};
-use crate::printable_error::ConfigParseError;
 
 
 fn apply_column(

@@ -48,6 +48,11 @@ fn input(row: &ByteRecord, index: &usize) -> Option<String> {
 }
 
 
+fn apply_line_number(line_number: u32) -> Option<String> {
+    Some(line_number.to_string())
+}
+
+
 impl Expression {
     pub fn apply(&self, value: Option<String>, row: &ByteRecord, variables: &Variables) -> Option<String> {
         match self {
@@ -75,7 +80,9 @@ impl Expression {
                 // This is awfully dirty
                 Some(value) => Some(value.clone()),
                 None => Some(String::from("")),
-            }
+            },
+
+            Expression::LineNumber => apply_line_number(0),
         }
     }
 }
