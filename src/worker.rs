@@ -12,13 +12,12 @@ type TransformationsChain = Vec<Transformation>;
 fn apply_transformations_chain(
     transformations_chain: &TransformationsChain,
     record: &ByteRecord,
-    variables: &Variables,
     line_number: usize,
 ) -> String {
     let mut value: Option<String> = None;
 
     for transformation in transformations_chain.iter() {
-        value = transformation.apply(value, record, variables, line_number);
+        value = transformation.apply(value, record, line_number);
     }
 
     match value {
@@ -31,14 +30,12 @@ fn apply_transformations_chain(
 fn transform(
     record: ByteRecord,
     transformer: &Transformer,
-    variables: &Variables,
     line_number: usize,
 ) -> ByteRecord {
     let output: Vec<String> = transformer.columns.iter().map(
         |column| apply_transformations_chain(
             column,
             &record,
-            &variables,
             line_number,
         )
     ).collect();
@@ -76,7 +73,6 @@ pub fn process(options: Options) -> Result<(), String> {
         writer.write_record(&transform(
             record,
             &transformer,
-            &options.variables,
             line_number + 1,
         )).unwrap();
     }

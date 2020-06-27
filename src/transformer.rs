@@ -58,7 +58,6 @@ impl Transformation {
         &self,
         value: Option<String>,
         row: &ByteRecord,
-        variables: &Variables,
         line_number: usize,
     ) -> Option<String> {
         match self {
