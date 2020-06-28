@@ -154,19 +154,18 @@ fn shorthand_input_to_expressions(
         input: input_column_name.clone(),
     };
 
-    let maybe_some_expression = step_to_transformation(
+    let maybe_some_transformation = step_to_transformation(
         &step,
         input_column_index_by_name,
         variables,
     );
 
-    match maybe_some_expression {
-        Err(err) => Err(err),
-        Ok(some_expression) => match some_expression {
-            Some(expression) => Ok(vec![expression]),
-            None => Ok(vec![]),
-        }
-    }
+    maybe_some_transformation.map(
+        |some_transformation| some_transformation.map_or(
+            vec![],
+            |transformation| vec![transformation],
+        )
+    )
 }
 
 

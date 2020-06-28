@@ -3,7 +3,7 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::config::create_transformer;
 use crate::transformer::{Transformer, Transformation};
-use crate::options::{Options, Variables};
+use crate::options::Options;
 
 
 type TransformationsChain = Vec<Transformation>;
