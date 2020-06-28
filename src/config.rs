@@ -7,6 +7,7 @@ use crate::transformer::{Transformer, Transformation};
 use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;
+use crate::worker::MaybeTransformationsChain;
 
 type InputColumnIndexByName = BTreeMap<String, usize>;
 
@@ -119,7 +120,7 @@ fn step_to_transformation(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
-) -> Result<Option<Transformation>, ConfigParseError> {
+) -> MaybeSomeTransformation {
     match step {
         Step::Input {input} => input_transformation(
             input,
@@ -152,7 +153,7 @@ fn shorthand_input_to_expressions(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     let step = Step::Input {
         input: input_column_name.clone(),
     };
@@ -176,7 +177,7 @@ fn steps_to_expressions(
     steps: &Vec<Step>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     let mapped_steps = steps.iter().map(
         |step| step_to_transformation(
             step,
@@ -191,11 +192,11 @@ fn steps_to_expressions(
 }
 
 
-fn column_to_expressions(
+fn column_to_transformations_chain(
     column: &Column,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     match column {
         Column::Input(input_column_name) => shorthand_input_to_expressions(
             input_column_name,
@@ -220,7 +221,7 @@ pub fn create_transformer(
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
     let maybe_columns: Result<Vec<Vec<Transformation>>, ConfigParseError> = config.columns.values().map(
-        |column| column_to_expressions(
+        |column| column_to_transformations_chain(
             column,
             &input_columns_index_by_name,
             variables,

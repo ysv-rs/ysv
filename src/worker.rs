@@ -4,9 +4,11 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 use crate::config::create_transformer;
 use crate::transformer::{Transformer, Transformation};
 use crate::options::Options;
+use crate::printable_error::ConfigParseError;
 
 
 type TransformationsChain = Vec<Transformation>;
+pub type MaybeTransformationsChain = Result<TransformationsChain, ConfigParseError>;
 
 
 fn apply_transformations_chain(
