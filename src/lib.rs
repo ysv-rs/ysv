@@ -25,12 +25,11 @@ To get errors in JSON format for integration with other tools:
 
 // Did the user request the built-in help message?
 fn is_help(args: &Vec<String>) -> bool {
-    match args.get(1) {
-        Some(argument_value) => (
-            argument_value.as_str() == "--help"
-        ),
-        _ => false,
-    }
+    args.get(1).map(
+        |argument_value| argument_value.as_str() == "--help"
+    ).unwrap_or(
+        false,
+    )
 }
 
 

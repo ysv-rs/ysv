@@ -22,10 +22,7 @@ fn apply_transformations_chain(
         value = transformation.apply(value, record, line_number);
     }
 
-    match value {
-        Some(content) => content,
-        None => String::new(),
-    }
+    value.unwrap_or("".to_string())
 }
 
 

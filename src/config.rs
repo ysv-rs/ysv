@@ -173,7 +173,7 @@ fn shorthand_input_to_expressions(
 }
 
 
-fn steps_to_expressions(
+fn steps_to_transformations_chain(
     steps: &Vec<Step>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
@@ -204,7 +204,7 @@ fn column_to_transformations_chain(
             variables,
         ),
 
-        Column::Steps(steps) => steps_to_expressions(
+        Column::Steps(steps) => steps_to_transformations_chain(
             steps,
             input_column_index_by_name,
             variables,

@@ -41,11 +41,10 @@ fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) 
 }
 
 
-fn input(row: &ByteRecord, index: &usize) -> Option<String> {
-    match row.get(*index) {
-        Some(bytes) => Some(safe_to_utf8(bytes)),
-        None => None,
-    }
+fn apply_input(row: &ByteRecord, index: &usize) -> Option<String> {
+    row.get(*index).map(
+        |bytes| safe_to_utf8(bytes),
+    )
 }
 
 
@@ -62,7 +61,7 @@ impl Transformation {
         line_number: usize,
     ) -> Option<String> {
         match self {
-            Transformation::Input(index) => input(row, index),
+            Transformation::Input(index) => apply_input(row, index),
             Transformation::Slice { start: _start, end: _end } => match value {
                 Some(content) => Some(content),
                 None => None,
