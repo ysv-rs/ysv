@@ -8,6 +8,7 @@ pub enum Transformation {
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
     Value { value: String },
+    From { from: String },
     Uppercase,
     Lowercase,
     LineNumber,
@@ -53,6 +54,11 @@ fn apply_line_number(line_number: usize) -> Option<String> {
 }
 
 
+fn apply_from(column_name: String) -> Option<String> {
+    Some(format!("{}? Ni!", column_name))
+}
+
+
 impl Transformation {
     pub fn apply(
         &self,
@@ -83,6 +89,8 @@ impl Transformation {
             Transformation::Value { value } => Some(value.clone()),
 
             Transformation::LineNumber => apply_line_number(line_number),
+
+            Transformation::From { from } => apply_from(from.to_string()),
         }
     }
 }
