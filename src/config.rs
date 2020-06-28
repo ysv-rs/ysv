@@ -103,10 +103,13 @@ fn variable_transformation(
     name: &String,
     variables: &Variables,
 ) -> MaybeSomeTransformation {
-    let value = match variables.get(name) {
-        Some(value) => value.clone(),
-        None => "".to_string(),
-    };
+    let value = variables.get(
+        name,
+    ).map(
+        |value| value.clone(),
+    ).unwrap_or(
+        "".to_string(),
+    );
 
     Ok(Some(Transformation::Value { value }))
 }
