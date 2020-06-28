@@ -3,10 +3,12 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::config::create_transformer;
 use crate::transformer::{Transformer, Transformation};
-use crate::options::{Options, Variables};
+use crate::options::Options;
+use crate::printable_error::ConfigParseError;
 
 
 type TransformationsChain = Vec<Transformation>;
+pub type MaybeTransformationsChain = Result<TransformationsChain, ConfigParseError>;
 
 
 fn apply_transformations_chain(
@@ -20,10 +22,7 @@ fn apply_transformations_chain(
         value = transformation.apply(value, record, line_number);
     }
 
-    match value {
-        Some(content) => content,
-        None => String::new(),
-    }
+    value.unwrap_or("".to_string())
 }
 
 
@@ -59,8 +58,8 @@ pub fn process(options: Options) -> Result<(), String> {
         &options.variables,
     );
 
-    if let Err(err) = maybe_transformer {
-        return Err(err.error_description);
+    if let Err(err) = maybe_transformer {   // FIXME this is too hard
+        return Err(err.error_description);  // FIXME and this too
     }
 
     let transformer = maybe_transformer.unwrap();

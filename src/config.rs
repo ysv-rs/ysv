@@ -7,6 +7,7 @@ use crate::transformer::{Transformer, Transformation};
 use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;
+use crate::worker::MaybeTransformationsChain;
 
 type InputColumnIndexByName = BTreeMap<String, usize>;
 
@@ -71,14 +72,14 @@ fn input_transformation(
         input_column_name,
     );
 
-    match input_column_index {
-        Some(index) => Ok(Some(Transformation::Input(index.clone()))),
-        None => {
-            // FIXME this should not be here
-            eprintln!("Warning: input column {} not found.", input_column_name);
-            Ok(None)
-        }
+    if input_column_index.is_none() {
+        // FIXME this should not be here
+        eprintln!("Warning: input column {} not found.", input_column_name);
     }
+
+    Ok(input_column_index.map(
+        |index| Transformation::Input(index.clone()),
+    ))
 }
 
 
@@ -103,10 +104,13 @@ fn variable_transformation(
     name: &String,
     variables: &Variables,
 ) -> MaybeSomeTransformation {
-    let value = match variables.get(name) {
-        Some(value) => value.clone(),
-        None => "".to_string(),
-    };
+    let value = variables.get(
+        name,
+    ).map(
+        |value| value.clone(),
+    ).unwrap_or(
+        "".to_string(),
+    );
 
     Ok(Some(Transformation::Value { value }))
 }
@@ -116,7 +120,7 @@ fn step_to_transformation(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
-) -> Result<Option<Transformation>, ConfigParseError> {
+) -> MaybeSomeTransformation {
     match step {
         Step::Input {input} => input_transformation(
             input,
@@ -149,32 +153,31 @@ fn shorthand_input_to_expressions(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     let step = Step::Input {
         input: input_column_name.clone(),
     };
 
-    let maybe_some_expression = step_to_transformation(
+    let maybe_some_transformation = step_to_transformation(
         &step,
         input_column_index_by_name,
         variables,
     );
 
-    match maybe_some_expression {
-        Err(err) => Err(err),
-        Ok(some_expression) => match some_expression {
-            Some(expression) => Ok(vec![expression]),
-            None => Ok(vec![]),
-        }
-    }
+    maybe_some_transformation.map(
+        |some_transformation| some_transformation.map_or(
+            vec![],
+            |transformation| vec![transformation],
+        )
+    )
 }
 
 
-fn steps_to_expressions(
+fn steps_to_transformations_chain(
     steps: &Vec<Step>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     let mapped_steps = steps.iter().map(
         |step| step_to_transformation(
             step,
@@ -189,11 +192,11 @@ fn steps_to_expressions(
 }
 
 
-fn column_to_expressions(
+fn column_to_transformations_chain(
     column: &Column,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
-) -> Result<Vec<Transformation>, ConfigParseError> {
+) -> MaybeTransformationsChain {
     match column {
         Column::Input(input_column_name) => shorthand_input_to_expressions(
             input_column_name,
@@ -201,7 +204,7 @@ fn column_to_expressions(
             variables,
         ),
 
-        Column::Steps(steps) => steps_to_expressions(
+        Column::Steps(steps) => steps_to_transformations_chain(
             steps,
             input_column_index_by_name,
             variables,
@@ -218,7 +221,7 @@ pub fn create_transformer(
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
     let maybe_columns: Result<Vec<Vec<Transformation>>, ConfigParseError> = config.columns.values().map(
-        |column| column_to_expressions(
+        |column| column_to_transformations_chain(
             column,
             &input_columns_index_by_name,
             variables,

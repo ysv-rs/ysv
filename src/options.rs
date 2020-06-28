@@ -7,7 +7,7 @@ use crate::printable_error::PrintableError;
 
 pub type Variables = BTreeMap<String, String>;
 
-
+#[derive(Copy, Clone)]
 pub enum ErrorFormat {
     // In what format to print the error log?
     HumanReadable,
@@ -63,8 +63,11 @@ pub fn get_options(args: Vec<String>) -> Result<Options, String> {
         first_argument.unwrap(),
     );
 
-    match config_result {
-        Ok(config) => Ok(Options { error_format, config, variables }),
-        Err(err) => Err(format_error(&err, &error_format))
-    }
+    // FIXME This piece of code throws a borrow checker error if to remove Copy & Clone traits
+    //   from ErrorFormat enum.
+    config_result.map(
+        |config| Options { error_format, config, variables }
+    ).map_err(
+        |err| format_error(&err, &error_format)
+    )
 }

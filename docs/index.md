@@ -63,6 +63,11 @@ ysv is used to:
 * Standardize CSV files of various formats and coerce it to some standard format
 * Clean up data before import into a database or other form of analysis
 
+## Other projects using YAML as a DSL
+
+* [Common Workflow Language (CWL)](https://www.commonwl.org/) runs your command-line tools on multiple machines and connects them together;
+* Long abandoned [YAML/HTML based dialog system](https://github.com/husathap/Mayo).
+
 ## Contents
 
 * [Writing configuration files](configuration.md)
