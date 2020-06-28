@@ -71,14 +71,14 @@ fn input_transformation(
         input_column_name,
     );
 
-    match input_column_index {
-        Some(index) => Ok(Some(Transformation::Input(index.clone()))),
-        None => {
-            // FIXME this should not be here
-            eprintln!("Warning: input column {} not found.", input_column_name);
-            Ok(None)
-        }
+    if input_column_index.is_none() {
+        // FIXME this should not be here
+        eprintln!("Warning: input column {} not found.", input_column_name);
     }
+
+    Ok(input_column_index.map(
+        |index| Transformation::Input(index.clone()),
+    ))
 }
 
 
