@@ -59,8 +59,8 @@ pub fn process(options: Options) -> Result<(), String> {
         &options.variables,
     );
 
-    if let Err(err) = maybe_transformer {
-        return Err(err.error_description);
+    if let Err(err) = maybe_transformer {   // FIXME this is too hard
+        return Err(err.error_description);  // FIXME and this too
     }
 
     let transformer = maybe_transformer.unwrap();

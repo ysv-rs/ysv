@@ -22,10 +22,11 @@ pub struct Transformer {
 
 
 fn safe_to_utf8(bytes: &[u8]) -> String {
-    match String::from_utf8(bytes.to_vec()) {
-        Ok(value) => value,
-        Err(_err) => String::new(),
-    }
+    String::from_utf8(
+        bytes.to_vec(),
+    ).unwrap_or(
+        "".to_string(),
+    )
 }
 
 
