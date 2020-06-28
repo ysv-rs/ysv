@@ -62,24 +62,23 @@ impl Transformation {
     ) -> Option<String> {
         match self {
             Transformation::Input(index) => apply_input(row, index),
-            Transformation::Slice { start: _start, end: _end } => match value {
-                Some(content) => Some(content),
-                None => None,
-            },
 
-            Transformation::Lowercase => match value {
-                Some(content) => Some(content.to_lowercase()),
-                None => None,
-            },
-            Transformation::Uppercase => match value {
-                Some(content) => Some(content.to_uppercase()),
-                None => None,
-            },
+            // FIXME: this is a no-op still
+            Transformation::Slice { start: _start, end: _end } => value,
 
-            Transformation::Replace { replace } => match value {
-                Some(content) => Some(replace_with_mapping(content, replace)),
-                None => None,
-            },
+            Transformation::Lowercase => value.map(
+                |content| content.to_lowercase(),
+            ),
+            Transformation::Uppercase => value.map(
+                |content| content.to_uppercase(),
+            ),
+
+            Transformation::Replace { replace } => value.map(
+                |content| replace_with_mapping(
+                    content,
+                    replace,
+                )
+            ),
 
             Transformation::Value { value } => Some(value.clone()),
 
