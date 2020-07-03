@@ -3,6 +3,13 @@ name = "ysv"
 version = "0.1.0"
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 edition = "2018"
+license = "MIT"
+description = "YAML driven CSV formatter"
+homepage = "https://ysv.rs"
+repository = "https://github.com/anatoly-scherbakov/ysv"
+readme = "README.md"
+keywords = ["csv", "etl"]
+categories = ["command-line-utilities"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
