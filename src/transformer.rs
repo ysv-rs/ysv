@@ -1,7 +1,6 @@
 use csv::{StringRecord, ByteRecord};
 use linked_hash_map::LinkedHashMap;
 use chrono::NaiveDate;
-use std::cell::Cell;
 
 
 #[derive(Debug)]
@@ -33,18 +32,21 @@ impl CellValue {
         CellValue::String(Some(value))
     }
 
-    pub fn to_string(self) -> String {
+    pub fn to_string(&self) -> String {
+        let empty_string = "".to_string();
+
         match self {
-            CellValue::String(maybe_value) => maybe_value.unwrap_or(
-                "".to_string(),
-            ),
+            CellValue::String(maybe_value) => maybe_value.as_ref().unwrap_or(
+                &empty_string,
+            ).clone(),
 
             CellValue::Date(maybe_value) => maybe_value.map(
                 |naive_date| naive_date.to_string(),
             ).unwrap_or(
-                "".to_string(),
+                empty_string,
             ),
         }
+
     }
 }
 
