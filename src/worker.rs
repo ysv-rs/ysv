@@ -2,7 +2,7 @@ use std::io;
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::config::create_transformer;
-use crate::transformer::{Transformer, Transformation};
+use crate::transformer::{Transformer, Transformation, CellValue};
 use crate::options::Options;
 use crate::printable_error::ConfigParseError;
 
@@ -16,7 +16,7 @@ fn apply_transformations_chain(
     record: &ByteRecord,
     line_number: usize,
 ) -> String {
-    let mut value: Option<String> = None;
+    let mut value: CellValue = None;
 
     for transformation in transformations_chain.iter() {
         value = transformation.apply(value, record, line_number);

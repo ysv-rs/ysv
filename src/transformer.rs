@@ -14,6 +14,8 @@ pub enum Transformation {
     LineNumber,
 }
 
+pub type CellValue = Option<String>;
+
 
 #[derive(Debug)]
 pub struct Transformer {
@@ -42,19 +44,19 @@ fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) 
 }
 
 
-fn apply_input(row: &ByteRecord, index: &usize) -> Option<String> {
+fn apply_input(row: &ByteRecord, index: &usize) -> CellValue {
     row.get(*index).map(
         |bytes| safe_to_utf8(bytes),
     )
 }
 
 
-fn apply_line_number(line_number: usize) -> Option<String> {
+fn apply_line_number(line_number: usize) -> CellValue {
     Some(line_number.to_string())
 }
 
 
-fn apply_from(column_name: String) -> Option<String> {
+fn apply_from(column_name: String) -> CellValue {
     Some(format!("{}? Ni!", column_name))
 }
 
@@ -62,10 +64,10 @@ fn apply_from(column_name: String) -> Option<String> {
 impl Transformation {
     pub fn apply(
         &self,
-        value: Option<String>,
+        value: CellValue,
         row: &ByteRecord,
         line_number: usize,
-    ) -> Option<String> {
+    ) -> CellValue {
         match self {
             Transformation::Input(index) => apply_input(row, index),
 
