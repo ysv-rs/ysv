@@ -1,0 +1,5 @@
+version: 1
+columns:
+  date:
+    - input: raw_date
+    - date: "%m/%d/%Y"
