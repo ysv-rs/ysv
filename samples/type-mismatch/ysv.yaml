@@ -1,0 +1,6 @@
+version: 1
+columns:
+  date:
+    - input: raw_date
+    - date: "%Y-%m-%d"
+    - uppercase
