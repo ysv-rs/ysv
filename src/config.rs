@@ -22,6 +22,7 @@ pub enum Step {
     Replace { replace: LinkedHashMap<String, String> },
     Variable { var: String },
     Value { value: String },
+    From { from: String },
     Operation(String),
 }
 
@@ -116,6 +117,11 @@ fn variable_transformation(
 }
 
 
+fn from_transformation(name: &String) -> MaybeSomeTransformation {
+    Ok(Some(Transformation::From { from: name.clone() }))
+}
+
+
 fn step_to_transformation(
     step: &Step,
     input_column_index_by_name: &BTreeMap<String, usize>,
@@ -141,6 +147,8 @@ fn step_to_transformation(
         Step::Value { value } => Ok(Some(
             Transformation::Value { value: value.clone() }
         )),
+
+        Step::From { from } => from_transformation(from),
 
         Step::Operation(value) => transformation_without_parameters(
             value,
