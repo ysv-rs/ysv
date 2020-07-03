@@ -1,5 +1,7 @@
 use csv::{StringRecord, ByteRecord};
 use linked_hash_map::LinkedHashMap;
+use chrono::NaiveDate;
+use std::cell::Cell;
 
 
 #[derive(Debug)]
@@ -14,7 +16,38 @@ pub enum Transformation {
     LineNumber,
 }
 
-pub type CellValue = Option<String>;
+
+#[derive(Debug)]
+pub enum CellValue {
+    String(Option<String>),
+    Date(Option<NaiveDate>),
+}
+
+
+impl CellValue {
+    pub fn empty_string() -> CellValue {
+        CellValue::String(Some("".to_string()))
+    }
+
+    pub fn from_string(value: String) -> CellValue {
+        CellValue::String(Some(value))
+    }
+
+    pub fn to_string(self) -> String {
+        match self {
+            CellValue::String(maybe_value) => maybe_value.unwrap_or(
+                "".to_string(),
+            ),
+
+            CellValue::Date(maybe_value) => maybe_value.map(
+                |naive_date| naive_date.to_string(),
+            ).unwrap_or(
+                "".to_string(),
+            ),
+        }
+    }
+}
+
 
 
 #[derive(Debug)]
@@ -45,19 +78,67 @@ fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) 
 
 
 fn apply_input(row: &ByteRecord, index: &usize) -> CellValue {
-    row.get(*index).map(
+    CellValue::String(
+        row.get(*index).map(
         |bytes| safe_to_utf8(bytes),
+        )
     )
 }
 
 
 fn apply_line_number(line_number: usize) -> CellValue {
-    Some(line_number.to_string())
+    CellValue::String(
+        Some(line_number.to_string()),
+    )
 }
 
 
 fn apply_from(column_name: String) -> CellValue {
-    Some(format!("{}? Ni!", column_name))
+    CellValue::String(
+        Some(format!("{}? Ni!", column_name)),
+    )
+}
+
+
+fn apply_lowercase(value: CellValue) -> CellValue {
+    CellValue::String(
+        match value {
+            CellValue::String(maybe_string) => maybe_string.map(
+                |content| content.to_lowercase(),
+            ),
+
+            _ => panic!("Runtime typing error: 'lowercase' transformation applied to {:?}.", value)
+        }
+    )
+}
+
+
+fn apply_uppercase(value: CellValue) -> CellValue {
+    CellValue::String(
+        match value {
+            CellValue::String(maybe_string) => maybe_string.map(
+                |content| content.to_uppercase(),
+            ),
+
+            _ => panic!("Runtime typing error: 'uppercase' transformation applied to {:?}.", value)
+        }
+    )
+}
+
+
+fn apply_replace(value: CellValue, mapping: &LinkedHashMap<String, String>) -> CellValue {
+    CellValue::String(
+        match value {
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| replace_with_mapping(
+                    content,
+                    mapping,
+                )
+            ),
+
+            _ => panic!("Runtime typing error: 'replace' transformation applied to {:?}.", value)
+        }
+    )
 }
 
 
@@ -74,21 +155,15 @@ impl Transformation {
             // FIXME: this is a no-op still
             Transformation::Slice { start: _start, end: _end } => value,
 
-            Transformation::Lowercase => value.map(
-                |content| content.to_lowercase(),
-            ),
-            Transformation::Uppercase => value.map(
-                |content| content.to_uppercase(),
+            Transformation::Lowercase => apply_lowercase(value),
+            Transformation::Uppercase => apply_uppercase(value),
+
+            Transformation::Replace { replace } => apply_replace(
+                value,
+                replace,
             ),
 
-            Transformation::Replace { replace } => value.map(
-                |content| replace_with_mapping(
-                    content,
-                    replace,
-                )
-            ),
-
-            Transformation::Value { value } => Some(value.clone()),
+            Transformation::Value { value } => CellValue::from_string(value.clone()),
 
             Transformation::LineNumber => apply_line_number(line_number),
 

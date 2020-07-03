@@ -16,13 +16,13 @@ fn apply_transformations_chain(
     record: &ByteRecord,
     line_number: usize,
 ) -> String {
-    let mut value: CellValue = None;
+    let mut value: CellValue = CellValue::empty_string();
 
     for transformation in transformations_chain.iter() {
         value = transformation.apply(value, record, line_number);
     }
 
-    value.unwrap_or("".to_string())
+    value.to_string()
 }
 
 
