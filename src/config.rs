@@ -23,6 +23,7 @@ pub enum Step {
     Variable { var: String },
     Value { value: String },
     From { from: String },
+    Date { date: String },
     Operation(String),
 }
 
@@ -121,6 +122,10 @@ fn from_transformation(name: &String) -> MaybeSomeTransformation {
     Ok(Some(Transformation::From { from: name.clone() }))
 }
 
+fn date_transformation(format: &String) -> MaybeSomeTransformation {
+    Ok(Some(Transformation::Date { format: format.clone() } ))
+}
+
 
 fn step_to_transformation(
     step: &Step,
@@ -149,6 +154,8 @@ fn step_to_transformation(
         )),
 
         Step::From { from } => from_transformation(from),
+
+        Step::Date { date } => date_transformation(date),
 
         Step::Operation(value) => transformation_without_parameters(
             value,

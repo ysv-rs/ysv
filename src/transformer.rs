@@ -10,6 +10,7 @@ pub enum Transformation {
     Replace { replace: LinkedHashMap<String, String> },
     Value { value: String },
     From { from: String },
+    Date { format: String },
     Uppercase,
     Lowercase,
     LineNumber,
@@ -46,7 +47,6 @@ impl CellValue {
                 empty_string,
             ),
         }
-
     }
 }
 
@@ -144,6 +144,32 @@ fn apply_replace(value: CellValue, mapping: &LinkedHashMap<String, String>) -> C
 }
 
 
+fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
+    CellValue::Date(
+        match value {
+            CellValue::String(maybe_content) => match maybe_content {
+                Some(content) => {
+                    NaiveDate::parse_from_str(
+                        content.as_str(),
+                        format.as_str(),
+                    ).map_err(
+                        |err| eprintln!(
+                            "Cannot parse date {} with format {}.",
+                            content, format,
+                        )
+                    ).ok()
+                },
+
+                // FIXME I do not understand how to do this without match right now
+                None => None
+            },
+
+            _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
+        }
+    )
+}
+
+
 impl Transformation {
     pub fn apply(
         &self,
@@ -170,6 +196,8 @@ impl Transformation {
             Transformation::LineNumber => apply_line_number(line_number),
 
             Transformation::From { from } => apply_from(from.to_string()),
+
+            Transformation::Date { format } => apply_parse_date(value, format),
         }
     }
 }
