@@ -1,7 +1,8 @@
 use crate::compile::{MaybeSomeTransformation, InputColumnIndexByName};
 use crate::transformer::Transformation;
 
-
+/// Provided a list of several input column names, find the first column which actually
+/// exists in the input stream, and use it. Useful to coerce multiple schemas to one.
 pub fn compile_multiple_input(
     input_column_names: &Vec<String>,
     input_column_index_by_name: &InputColumnIndexByName,

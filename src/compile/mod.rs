@@ -1,4 +1,5 @@
 mod input_multiple;
+mod models;
 
 use std::fs;
 use serde::Deserialize;
@@ -11,40 +12,9 @@ use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;
 use crate::worker::MaybeTransformationsChain;
 use crate::compile::input_multiple::compile_multiple_input;
+use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
 
-type InputColumnIndexByName = BTreeMap<String, usize>;
-
-type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
-
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Expression {
-    Input { input: String },
-    MultipleInput { input: Vec<String> },
-    Trim { trim: usize },
-    Replace { replace: LinkedHashMap<String, String> },
-    Variable { var: String },
-    Value { value: String },
-    From { from: String },
-    Date { date: String },
-    Operation(String),
-}
-
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Column {
-    Input(String),
-    Expressions(Vec<Expression>),
-}
-
-
-#[derive(Debug, Deserialize)]
-pub struct Config {
-    version: i8,
-    pub(crate) columns: LinkedHashMap<String, Column>,
-}
+pub use crate::compile::models::Config;
 
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
