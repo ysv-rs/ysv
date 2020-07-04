@@ -1,4 +1,4 @@
-mod input_multiple;
+mod input;
 mod models;
 
 use std::fs;
@@ -11,7 +11,7 @@ use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;
 use crate::worker::MaybeTransformationsChain;
-use crate::compile::input_multiple::compile_multiple_input;
+use crate::compile::input::{compile_multiple_input, compile_singular_input};
 use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
 
 pub use crate::compile::models::Config;
@@ -37,25 +37,6 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
     }
 
     mapping
-}
-
-
-fn input_transformation(
-    input_column_name: &String,
-    input_column_index_by_name: &InputColumnIndexByName,
-) -> MaybeSomeTransformation {
-    let input_column_index = input_column_index_by_name.get(
-        input_column_name,
-    );
-
-    if input_column_index.is_none() {
-        // FIXME this should not be here
-        eprintln!("Warning: input column {} not found.", input_column_name);
-    }
-
-    Ok(input_column_index.map(
-        |index| Transformation::Input(index.clone()),
-    ))
 }
 
 
@@ -108,7 +89,7 @@ fn expression_to_transformation(
     variables: &Variables,
 ) -> MaybeSomeTransformation {
     match step {
-        Expression::Input {input} => input_transformation(
+        Expression::Input {input} => compile_singular_input(
             input,
             input_column_index_by_name,
         ),
@@ -169,11 +150,11 @@ fn shorthand_input_to_transformations_chain(
 
 
 fn expressions_to_transformations_chain(
-    steps: &Vec<Expression>,
+    expressions: &Vec<Expression>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
 ) -> MaybeTransformationsChain {
-    let mapped_steps = steps.iter().map(
+    let mapped_steps = expressions.iter().map(
         |step| expression_to_transformation(
             step,
             &input_column_index_by_name,

@@ -1,5 +1,26 @@
-use crate::compile::{MaybeSomeTransformation, InputColumnIndexByName};
 use crate::transformer::Transformation;
+use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation};
+
+
+/// Compiles the specified input column name to a Transformation with the index of the said column.
+pub fn compile_singular_input(
+    input_column_name: &String,
+    input_column_index_by_name: &InputColumnIndexByName,
+) -> MaybeSomeTransformation {
+    let input_column_index = input_column_index_by_name.get(
+        input_column_name,
+    );
+
+    if input_column_index.is_none() {
+        // FIXME this should not be here
+        eprintln!("Warning: input column {} not found.", input_column_name);
+    }
+
+    Ok(input_column_index.map(
+        |index| Transformation::Input(index.clone()),
+    ))
+}
+
 
 /// Provided a list of several input column names, find the first column which actually
 /// exists in the input stream, and use it. Useful to coerce multiple schemas to one.
