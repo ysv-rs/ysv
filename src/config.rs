@@ -164,7 +164,7 @@ fn step_to_transformation(
 }
 
 
-fn shorthand_input_to_expressions(
+fn shorthand_input_to_transformations_chain(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
@@ -201,9 +201,9 @@ fn steps_to_transformations_chain(
         ),
     );
 
-    let maybe_some_expressions: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
+    let maybe_some_transformations: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
 
-    Ok(maybe_some_expressions?.into_iter().flatten().collect())
+    Ok(maybe_some_transformations?.into_iter().flatten().collect())
 }
 
 
@@ -213,7 +213,7 @@ fn column_to_transformations_chain(
     variables: &Variables,
 ) -> MaybeTransformationsChain {
     match column {
-        Column::Input(input_column_name) => shorthand_input_to_expressions(
+        Column::Input(input_column_name) => shorthand_input_to_transformations_chain(
             input_column_name,
             input_column_index_by_name,
             variables,
