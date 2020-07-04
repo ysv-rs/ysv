@@ -16,7 +16,7 @@ type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-pub enum Step {
+pub enum Expression {
     Input { input: String },
     Trim { trim: usize },
     Replace { replace: LinkedHashMap<String, String> },
@@ -32,7 +32,7 @@ pub enum Step {
 #[serde(untagged)]
 pub enum Column {
     Input(String),
-    Steps(Vec<Step>),
+    Expressions(Vec<Expression>),
 }
 
 
@@ -127,37 +127,37 @@ fn date_transformation(format: &String) -> MaybeSomeTransformation {
 }
 
 
-fn step_to_transformation(
-    step: &Step,
+fn expression_to_transformation(
+    step: &Expression,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
 ) -> MaybeSomeTransformation {
     match step {
-        Step::Input {input} => input_transformation(
+        Expression::Input {input} => input_transformation(
             input,
             input_column_index_by_name,
         ),
 
-        Step::Trim {trim} => Ok(Some(Transformation::Slice { start: 0, end: *trim })),
+        Expression::Trim {trim} => Ok(Some(Transformation::Slice { start: 0, end: *trim })),
 
-        Step::Replace { replace } => Ok(Some(
+        Expression::Replace { replace } => Ok(Some(
             Transformation::Replace { replace: replace.clone() }
         )),
 
-        Step::Variable { var: variable } => variable_transformation(
+        Expression::Variable { var: variable } => variable_transformation(
             variable,
             variables,
         ),
 
-        Step::Value { value } => Ok(Some(
+        Expression::Value { value } => Ok(Some(
             Transformation::Value { value: value.clone() }
         )),
 
-        Step::From { from } => from_transformation(from),
+        Expression::From { from } => from_transformation(from),
 
-        Step::Date { date } => date_transformation(date),
+        Expression::Date { date } => date_transformation(date),
 
-        Step::Operation(value) => transformation_without_parameters(
+        Expression::Operation(value) => transformation_without_parameters(
             value,
         )
     }
@@ -169,11 +169,11 @@ fn shorthand_input_to_transformations_chain(
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
 ) -> MaybeTransformationsChain {
-    let step = Step::Input {
+    let step = Expression::Input {
         input: input_column_name.clone(),
     };
 
-    let maybe_some_transformation = step_to_transformation(
+    let maybe_some_transformation = expression_to_transformation(
         &step,
         input_column_index_by_name,
         variables,
@@ -188,13 +188,13 @@ fn shorthand_input_to_transformations_chain(
 }
 
 
-fn steps_to_transformations_chain(
-    steps: &Vec<Step>,
+fn expressions_to_transformations_chain(
+    steps: &Vec<Expression>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
 ) -> MaybeTransformationsChain {
     let mapped_steps = steps.iter().map(
-        |step| step_to_transformation(
+        |step| expression_to_transformation(
             step,
             &input_column_index_by_name,
             &variables,
@@ -219,7 +219,7 @@ fn column_to_transformations_chain(
             variables,
         ),
 
-        Column::Steps(steps) => steps_to_transformations_chain(
+        Column::Expressions(steps) => expressions_to_transformations_chain(
             steps,
             input_column_index_by_name,
             variables,
