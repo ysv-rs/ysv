@@ -3,6 +3,7 @@ mod options;
 mod config;
 mod transformer;
 mod printable_error;
+mod config_tests;
 
 use crate::worker::process;
 use crate::options::get_options;
