@@ -1,0 +1,6 @@
+version: 1
+columns:
+  name:
+    - input:
+        - First Name
+        - first_name

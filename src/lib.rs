@@ -1,6 +1,6 @@
 mod worker;
 mod options;
-mod config;
+mod compile;
 mod transformer;
 mod printable_error;
 

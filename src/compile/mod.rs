@@ -1,3 +1,6 @@
+mod input;
+mod models;
+
 use std::fs;
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -8,39 +11,10 @@ use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;
 use crate::worker::MaybeTransformationsChain;
+use crate::compile::input::{compile_multiple_input, compile_singular_input};
+use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
 
-type InputColumnIndexByName = BTreeMap<String, usize>;
-
-type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
-
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Step {
-    Input { input: String },
-    Trim { trim: usize },
-    Replace { replace: LinkedHashMap<String, String> },
-    Variable { var: String },
-    Value { value: String },
-    From { from: String },
-    Date { date: String },
-    Operation(String),
-}
-
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-pub enum Column {
-    Input(String),
-    Steps(Vec<Step>),
-}
-
-
-#[derive(Debug, Deserialize)]
-pub struct Config {
-    version: i8,
-    pub(crate) columns: LinkedHashMap<String, Column>,
-}
+pub use crate::compile::models::Config;
 
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
@@ -63,25 +37,6 @@ fn get_input_columns_index_map(headers: &StringRecord) -> BTreeMap<String, usize
     }
 
     mapping
-}
-
-
-fn input_transformation(
-    input_column_name: &String,
-    input_column_index_by_name: &InputColumnIndexByName,
-) -> MaybeSomeTransformation {
-    let input_column_index = input_column_index_by_name.get(
-        input_column_name,
-    );
-
-    if input_column_index.is_none() {
-        // FIXME this should not be here
-        eprintln!("Warning: input column {} not found.", input_column_name);
-    }
-
-    Ok(input_column_index.map(
-        |index| Transformation::Input(index.clone()),
-    ))
 }
 
 
@@ -127,53 +82,59 @@ fn date_transformation(format: &String) -> MaybeSomeTransformation {
 }
 
 
-fn step_to_transformation(
-    step: &Step,
+
+fn expression_to_transformation(
+    step: &Expression,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
 ) -> MaybeSomeTransformation {
     match step {
-        Step::Input {input} => input_transformation(
+        Expression::Input {input} => compile_singular_input(
             input,
             input_column_index_by_name,
         ),
 
-        Step::Trim {trim} => Ok(Some(Transformation::Slice { start: 0, end: *trim })),
+        Expression::MultipleInput { input } => compile_multiple_input(
+            input,
+            input_column_index_by_name,
+        ),
 
-        Step::Replace { replace } => Ok(Some(
+        Expression::Trim {trim} => Ok(Some(Transformation::Slice { start: 0, end: *trim })),
+
+        Expression::Replace { replace } => Ok(Some(
             Transformation::Replace { replace: replace.clone() }
         )),
 
-        Step::Variable { var: variable } => variable_transformation(
+        Expression::Variable { var: variable } => variable_transformation(
             variable,
             variables,
         ),
 
-        Step::Value { value } => Ok(Some(
+        Expression::Value { value } => Ok(Some(
             Transformation::Value { value: value.clone() }
         )),
 
-        Step::From { from } => from_transformation(from),
+        Expression::From { from } => from_transformation(from),
 
-        Step::Date { date } => date_transformation(date),
+        Expression::Date { date } => date_transformation(date),
 
-        Step::Operation(value) => transformation_without_parameters(
+        Expression::Operation(value) => transformation_without_parameters(
             value,
         )
     }
 }
 
 
-fn shorthand_input_to_expressions(
+fn shorthand_input_to_transformations_chain(
     input_column_name: &String,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
 ) -> MaybeTransformationsChain {
-    let step = Step::Input {
+    let step = Expression::Input {
         input: input_column_name.clone(),
     };
 
-    let maybe_some_transformation = step_to_transformation(
+    let maybe_some_transformation = expression_to_transformation(
         &step,
         input_column_index_by_name,
         variables,
@@ -188,22 +149,22 @@ fn shorthand_input_to_expressions(
 }
 
 
-fn steps_to_transformations_chain(
-    steps: &Vec<Step>,
+fn expressions_to_transformations_chain(
+    expressions: &Vec<Expression>,
     input_column_index_by_name: &InputColumnIndexByName,
     variables: &Variables,
 ) -> MaybeTransformationsChain {
-    let mapped_steps = steps.iter().map(
-        |step| step_to_transformation(
+    let mapped_steps = expressions.iter().map(
+        |step| expression_to_transformation(
             step,
             &input_column_index_by_name,
             &variables,
         ),
     );
 
-    let maybe_some_expressions: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
+    let maybe_some_transformations: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
 
-    Ok(maybe_some_expressions?.into_iter().flatten().collect())
+    Ok(maybe_some_transformations?.into_iter().flatten().collect())
 }
 
 
@@ -213,13 +174,13 @@ fn column_to_transformations_chain(
     variables: &Variables,
 ) -> MaybeTransformationsChain {
     match column {
-        Column::Input(input_column_name) => shorthand_input_to_expressions(
+        Column::Input(input_column_name) => shorthand_input_to_transformations_chain(
             input_column_name,
             input_column_index_by_name,
             variables,
         ),
 
-        Column::Steps(steps) => steps_to_transformations_chain(
+        Column::Expressions(steps) => expressions_to_transformations_chain(
             steps,
             input_column_index_by_name,
             variables,

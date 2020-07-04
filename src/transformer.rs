@@ -3,7 +3,7 @@ use linked_hash_map::LinkedHashMap;
 use chrono::NaiveDate;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Transformation {
     Input(usize),
     Slice { start: usize, end: usize },
