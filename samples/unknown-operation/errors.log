@@ -1,2 +1,2 @@
-thread 'main' panicked at 'YAML config could not be parsed.: Message("data did not match any variant of untagged enum Column", Some(Pos { marker: Marker { index: 28, line: 3, col: 8 }, path: "columns" }))', src/config.rs:50:8
+thread 'main' panicked at 'YAML config could not be parsed.: Message("data did not match any variant of untagged enum Column", Some(Pos { marker: Marker { index: 28, line: 3, col: 8 }, path: "columns" }))', src/compile/mod.rs:25:8
 note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
