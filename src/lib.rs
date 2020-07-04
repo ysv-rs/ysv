@@ -1,9 +1,8 @@
 mod worker;
 mod options;
-mod config;
+mod compile;
 mod transformer;
 mod printable_error;
-mod config_tests;
 
 use crate::worker::process;
 use crate::options::get_options;

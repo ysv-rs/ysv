@@ -1,7 +1,7 @@
 use std::io;
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
-use crate::config::create_transformer;
+use crate::compile::create_transformer;
 use crate::transformer::{Transformer, Transformation, CellValue};
 use crate::options::Options;
 use crate::printable_error::ConfigParseError;
