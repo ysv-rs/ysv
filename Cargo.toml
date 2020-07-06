@@ -1,18 +1,18 @@
 [package]
 name = "ysv"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 edition = "2018"
 license = "MIT"
 description = "YAML driven CSV formatter"
 homepage = "https://ysv.rs"
 repository = "https://github.com/anatoly-scherbakov/ysv"
+documentation = "https://altaisoft.gitbook.io/ysv/"
 readme = "README.md"
 keywords = ["csv", "etl"]
 categories = ["command-line-utilities"]
 exclude = [
     "samples/*",
-    "docs/*",
     "sample",
     "tests/*"
 ]
