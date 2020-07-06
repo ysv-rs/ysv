@@ -9,13 +9,24 @@ pub type InputColumnIndexByName = BTreeMap<String, usize>;
 pub type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
 
 
+pub type ReplaceMapping = LinkedHashMap<String, String>;
+
+
+#[derive(Debug, Deserialize)]
+pub struct ReplaceRegex {
+    pub pattern: String,
+    pub replace: String,
+}
+
+
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum Expression {
     Input { input: String },
     MultipleInput { input: Vec<String> },
     Trim { trim: usize },
-    Replace { replace: LinkedHashMap<String, String> },
+    Replace { replace: ReplaceMapping },
+    ReplaceRegex { replace_regex: ReplaceRegex },
     Variable { var: String },
     Value { value: String },
     From { from: String },
