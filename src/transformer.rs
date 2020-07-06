@@ -176,16 +176,10 @@ fn apply_replace_regex(value: CellValue, regex: &Regex, replace: &String) -> Cel
     CellValue::String(
         match value {
             CellValue::String(maybe_content) => maybe_content.map(
-                |content| {
-                    let result = regex.replace_all(
+                |content| regex.replace_all(
                         content.as_str(),
                         replace.as_str(),
-                    ).to_string();
-
-                    eprintln!("{} + {:?} / {} = {}", content, regex, replace, result);
-
-                    result
-                }
+                    ).to_string()
             ),
 
             _ => panic!(
