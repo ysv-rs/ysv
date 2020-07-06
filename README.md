@@ -7,19 +7,26 @@ Stands for:
 
 Clean up and transform CSV data as specified by a YAML formatted config file. Lightning fast.
 
+## Installation
+
+```bash
+cargo install ysv
+```
+
 ## Usage
 
 Run the app against one of the samples:
 
 ```bash
-cat samples/vehicles/input.csv | cargo run samples/vehicles/ysv.yaml
+cd samples/vehicles
+cat input.csv | ysv ysv.yaml > output.csv
 ```
 
 (check `output.csv` files in the `samples/*` directories.)
 
 ## Documentation
 
-[View docs.](docs/index.md)
+[View docs.](https://altaisoft.gitbook.io/ysv/)
 
 ## To rebuild a sample:
 
@@ -29,4 +36,4 @@ cat samples/vehicles/input.csv | cargo run samples/vehicles/ysv.yaml
 
 ## Disclaimer
 
-This is the first program I ever wrote in Rust programming language, and while I value clean and beautiful code a lot - the code of this particular app leaves much to desire. I will write down some known issues with it into Issues.
+This is the first program I ever wrote in Rust programming language, and development stage is still Alpha. However, I am using it for production tasks, which has lead me to believe it can be useful to someone else, too. 
