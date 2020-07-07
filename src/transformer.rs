@@ -1,13 +1,15 @@
 use csv::{StringRecord, ByteRecord};
 use linked_hash_map::LinkedHashMap;
 use chrono::NaiveDate;
+use regex::Regex;
 
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum Transformation {
     Input(usize),
     Slice { start: usize, end: usize },
     Replace { replace: LinkedHashMap<String, String> },
+    ReplaceRegex { pattern: Regex, replace: String },
     Value { value: String },
     From { from: String },
     Date { format: String },
@@ -170,6 +172,25 @@ fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
 }
 
 
+fn apply_replace_regex(value: CellValue, regex: &Regex, replace: &String) -> CellValue {
+    CellValue::String(
+        match value {
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| regex.replace_all(
+                        content.as_str(),
+                        replace.as_str(),
+                    ).to_string()
+            ),
+
+            _ => panic!(
+                "Runtime typing error: 'replace_regex' transformation applied to {:?}.",
+                value,
+            ),
+        }
+    )
+}
+
+
 impl Transformation {
     pub fn apply(
         &self,
@@ -188,6 +209,14 @@ impl Transformation {
 
             Transformation::Replace { replace } => apply_replace(
                 value,
+                replace,
+            ),
+
+            Transformation::ReplaceRegex {
+                pattern, replace
+            } => apply_replace_regex(
+                value,
+                pattern,
                 replace,
             ),
 

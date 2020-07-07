@@ -1,0 +1,7 @@
+version: 1
+columns:
+  email:
+    - input: email
+    - replace_regex:
+        pattern: "^0$"
+        replace: ""

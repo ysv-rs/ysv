@@ -1,4 +1,5 @@
 mod input;
+mod replace;
 mod models;
 
 use std::fs;
@@ -15,6 +16,7 @@ use crate::compile::input::{compile_multiple_input, compile_singular_input};
 use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
 
 pub use crate::compile::models::Config;
+use crate::compile::replace::compile_replace_regex;
 
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
@@ -104,6 +106,10 @@ fn expression_to_transformation(
         Expression::Replace { replace } => Ok(Some(
             Transformation::Replace { replace: replace.clone() }
         )),
+
+        Expression::ReplaceRegex { replace_regex } => compile_replace_regex(
+            replace_regex,
+        ),
 
         Expression::Variable { var: variable } => variable_transformation(
             variable,
