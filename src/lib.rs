@@ -1,7 +1,7 @@
 mod worker;
 mod options;
 mod compile;
-mod transformer;
+mod transform;
 mod printable_error;
 
 use crate::worker::process;

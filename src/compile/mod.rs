@@ -1,22 +1,23 @@
+use std::collections::BTreeMap;
+use std::fs;
+
+use csv::StringRecord;
+use serde::Deserialize;
+
+use crate::compile::input::{compile_multiple_input, compile_singular_input};
+use crate::compile::models::{Column, Expression, InputColumnIndexByName, MaybeSomeTransformation};
+pub use crate::compile::models::Config;
+use crate::compile::replace::compile_replace_regex;
+use crate::options::Variables;
+use crate::printable_error::{ConfigParseError, PrintableError};
+use crate::transform::{Transformation, Transformer};
+use crate::worker::MaybeTransformationsChain;
+use crate::compile::date::compile_date_with_multiple_formats;
+
 mod input;
 mod replace;
 mod models;
-
-use std::fs;
-use serde::Deserialize;
-use std::collections::BTreeMap;
-use csv::StringRecord;
-
-use crate::transformer::{Transformer, Transformation};
-use linked_hash_map::LinkedHashMap;
-use crate::printable_error::{PrintableError, ConfigParseError};
-use crate::options::Variables;
-use crate::worker::MaybeTransformationsChain;
-use crate::compile::input::{compile_multiple_input, compile_singular_input};
-use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
-
-pub use crate::compile::models::Config;
-use crate::compile::replace::compile_replace_regex;
+mod date;
 
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
@@ -85,7 +86,7 @@ fn date_transformation(format: &String) -> MaybeSomeTransformation {
 
 
 
-fn expression_to_transformation(
+fn compile_expression(
     step: &Expression,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
@@ -123,6 +124,7 @@ fn expression_to_transformation(
         Expression::From { from } => from_transformation(from),
 
         Expression::Date { date } => date_transformation(date),
+        Expression::MultipleDate { date } => compile_date_with_multiple_formats(date),
 
         Expression::Operation(value) => transformation_without_parameters(
             value,
@@ -140,7 +142,7 @@ fn shorthand_input_to_transformations_chain(
         input: input_column_name.clone(),
     };
 
-    let maybe_some_transformation = expression_to_transformation(
+    let maybe_some_transformation = compile_expression(
         &step,
         input_column_index_by_name,
         variables,
@@ -161,7 +163,7 @@ fn expressions_to_transformations_chain(
     variables: &Variables,
 ) -> MaybeTransformationsChain {
     let mapped_steps = expressions.iter().map(
-        |step| expression_to_transformation(
+        |step| compile_expression(
             step,
             &input_column_index_by_name,
             &variables,
