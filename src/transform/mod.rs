@@ -1,10 +1,12 @@
 mod models;
 mod input;
+mod replace;
+mod case;
+mod date;
 
 use csv::ByteRecord;
-use linked_hash_map::LinkedHashMap;
 use chrono::{NaiveDate, Duration};
-use regex::Regex;
+
 
 pub use crate::transform::models::{
     Transformer,
@@ -12,17 +14,9 @@ pub use crate::transform::models::{
     CellValue,
 };
 use crate::transform::input::apply_input;
-
-
-fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) -> String {
-    let mut result: String = value;
-
-    for (from, to) in mapping.iter() {
-        result = result.replace(from, to);
-    }
-
-    result
-}
+use crate::transform::replace::{apply_replace, apply_replace_regex};
+use crate::transform::case::{apply_uppercase, apply_lowercase};
+use crate::transform::date::apply_parse_date;
 
 
 fn apply_line_number(line_number: usize) -> CellValue {
@@ -35,136 +29,6 @@ fn apply_line_number(line_number: usize) -> CellValue {
 fn apply_from(column_name: String) -> CellValue {
     CellValue::String(
         Some(format!("{}? Ni!", column_name)),
-    )
-}
-
-
-fn apply_lowercase(value: CellValue) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_string) => maybe_string.map(
-                |content| content.to_lowercase(),
-            ),
-
-            _ => panic!("Runtime typing error: 'lowercase' transformation applied to {:?}.", value)
-        }
-    )
-}
-
-
-fn apply_uppercase(value: CellValue) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_string) => maybe_string.map(
-                |content| content.to_uppercase(),
-            ),
-
-            _ => panic!("Runtime typing error: 'uppercase' transformation applied to {:?}.", value)
-        }
-    )
-}
-
-
-fn apply_replace(value: CellValue, mapping: &LinkedHashMap<String, String>) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_content) => maybe_content.map(
-                |content| replace_with_mapping(
-                    content,
-                    mapping,
-                )
-            ),
-
-            _ => panic!("Runtime typing error: 'replace' transformation applied to {:?}.", value)
-        }
-    )
-}
-
-
-/// Inspired by: https://stackoverflow.com/a/29387450/1245471
-fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
-    let maybe_ordinal: Option<i64> = value.parse().ok();
-
-    if maybe_ordinal.is_none() {
-        return None
-    }
-
-    let mut ordinal = maybe_ordinal.unwrap();
-    let epoch = NaiveDate::from_ymd(1899, 12, 31);
-
-    if ordinal >= 60 {
-        ordinal = ordinal - 1;
-    }
-
-    Some(epoch + Duration::days(ordinal))
-}
-
-
-#[cfg(test)]
-mod parse_excel_ordinal_date_tests {
-    use super::*;
-
-    #[cfg(test)]
-    fn test_38142() {
-        let ordinal = 38142;
-        let expected_date = NaiveDate::from_ymd(2004, 4, 6);
-        let date = parse_excel_ordinal_date(ordinal.to_string()).unwrap();
-
-        assert_eq!(date, expected_date);
-    }
-}
-
-
-fn parse_date_with_format(value: String, format: &String) -> Option<NaiveDate> {
-    NaiveDate::parse_from_str(
-        value.as_str(),
-        format.as_str(),
-    ).map_err(
-        |err| eprintln!(
-            "Cannot parse date {} with format {}.",
-            value, format,
-        )
-    ).ok()
-}
-
-
-fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
-    CellValue::Date(
-        match value {
-            CellValue::String(maybe_content) => match maybe_content {
-                Some(content) => {
-                    if format == "excel-ordinal" {
-                        parse_excel_ordinal_date(content)
-                    } else {
-                        parse_date_with_format(content, format)
-                    }
-                },
-
-                // FIXME I do not understand how to do this without match right now
-                None => None
-            },
-
-            _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
-        }
-    )
-}
-
-
-fn apply_replace_regex(value: CellValue, regex: &Regex, replace: &String) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_content) => maybe_content.map(
-                |content| regex.replace_all(
-                        content.as_str(),
-                        replace.as_str(),
-                    ).to_string()
-            ),
-
-            _ => panic!(
-                "Runtime typing error: 'replace_regex' transformation applied to {:?}.",
-                value,
-            ),
-        }
     )
 }
 

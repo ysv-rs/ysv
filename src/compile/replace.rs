@@ -1,7 +1,8 @@
-use crate::compile::models::{ReplaceMapping, MaybeSomeTransformation, ReplaceRegex};
+use crate::compile::models::{MaybeSomeTransformation, ReplaceRegex};
 use crate::transform::Transformation;
 use regex::Regex;
-use crate::printable_error::{PrintableError, ConfigParseError};
+use crate::printable_error::ConfigParseError;
+
 
 /// Accepts a number of mappings from regular expressions
 pub fn compile_replace_regex(replace_regex: &ReplaceRegex) -> MaybeSomeTransformation {
