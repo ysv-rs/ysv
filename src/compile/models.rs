@@ -24,14 +24,21 @@ pub struct ReplaceRegex {
 pub enum Expression {
     Input { input: String },
     MultipleInput { input: Vec<String> },
-    Trim { trim: usize },
+
     Replace { replace: ReplaceMapping },
     ReplaceRegex { replace_regex: ReplaceRegex },
+
     Variable { var: String },
     Value { value: String },
-    From { from: String },
+
     Date { date: String },
+    MultipleDate { date: Vec<String> },
+
     Operation(String),
+
+    // Not supported yet
+    From { from: String },
+    Trim { trim: usize },
 }
 
 

@@ -5,7 +5,6 @@ mod case;
 mod date;
 
 use csv::ByteRecord;
-use chrono::{NaiveDate, Duration};
 
 
 pub use crate::transform::models::{
@@ -16,7 +15,7 @@ pub use crate::transform::models::{
 use crate::transform::input::apply_input;
 use crate::transform::replace::{apply_replace, apply_replace_regex};
 use crate::transform::case::{apply_uppercase, apply_lowercase};
-use crate::transform::date::apply_parse_date;
+use crate::transform::date::{apply_parse_date, apply_date_multiple_formats};
 
 
 fn apply_line_number(line_number: usize) -> CellValue {
@@ -69,6 +68,7 @@ impl Transformation {
             Transformation::From { from } => apply_from(from.to_string()),
 
             Transformation::Date { format } => apply_parse_date(value, format),
+            Transformation::DateMultiple { formats } => apply_date_multiple_formats(value, formats),
         }
     }
 }

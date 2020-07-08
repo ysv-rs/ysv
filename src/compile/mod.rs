@@ -12,10 +12,13 @@ use crate::options::Variables;
 use crate::printable_error::{ConfigParseError, PrintableError};
 use crate::transform::{Transformation, Transformer};
 use crate::worker::MaybeTransformationsChain;
+use crate::compile::date::compile_date_with_multiple_formats;
 
 mod input;
 mod replace;
 mod models;
+mod date;
+
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
     let content = fs::read_to_string(&path).expect(
@@ -83,7 +86,7 @@ fn date_transformation(format: &String) -> MaybeSomeTransformation {
 
 
 
-fn expression_to_transformation(
+fn compile_expression(
     step: &Expression,
     input_column_index_by_name: &BTreeMap<String, usize>,
     variables: &Variables,
@@ -121,6 +124,7 @@ fn expression_to_transformation(
         Expression::From { from } => from_transformation(from),
 
         Expression::Date { date } => date_transformation(date),
+        Expression::MultipleDate { date } => compile_date_with_multiple_formats(date),
 
         Expression::Operation(value) => transformation_without_parameters(
             value,
@@ -138,7 +142,7 @@ fn shorthand_input_to_transformations_chain(
         input: input_column_name.clone(),
     };
 
-    let maybe_some_transformation = expression_to_transformation(
+    let maybe_some_transformation = compile_expression(
         &step,
         input_column_index_by_name,
         variables,
@@ -159,7 +163,7 @@ fn expressions_to_transformations_chain(
     variables: &Variables,
 ) -> MaybeTransformationsChain {
     let mapped_steps = expressions.iter().map(
-        |step| expression_to_transformation(
+        |step| compile_expression(
             step,
             &input_column_index_by_name,
             &variables,

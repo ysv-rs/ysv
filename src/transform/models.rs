@@ -12,7 +12,10 @@ pub enum Transformation {
     ReplaceRegex { pattern: Regex, replace: String },
     Value { value: String },
     From { from: String },
+
     Date { format: String },
+    DateMultiple { formats: Vec<String> },
+
     Uppercase,
     Lowercase,
     LineNumber,
