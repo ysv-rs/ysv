@@ -1,4 +1,4 @@
-use crate::transformer::Transformation;
+use crate::transform::Transformation;
 use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation};
 
 

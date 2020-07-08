@@ -1,5 +1,5 @@
 use crate::compile::models::{ReplaceMapping, MaybeSomeTransformation, ReplaceRegex};
-use crate::transformer::Transformation;
+use crate::transform::Transformation;
 use regex::Regex;
 use crate::printable_error::{PrintableError, ConfigParseError};
 

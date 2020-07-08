@@ -7,7 +7,7 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 use csv::StringRecord;
 
-use crate::transformer::{Transformer, Transformation};
+use crate::transform::{Transformer, Transformation};
 use linked_hash_map::LinkedHashMap;
 use crate::printable_error::{PrintableError, ConfigParseError};
 use crate::options::Variables;

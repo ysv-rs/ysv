@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::collections::BTreeMap;
-use crate::transformer::Transformation;
+use crate::transform::Transformation;
 use crate::printable_error::ConfigParseError;
 use linked_hash_map::LinkedHashMap;
 
