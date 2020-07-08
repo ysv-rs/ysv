@@ -1,4 +1,5 @@
 mod models;
+mod input;
 
 use csv::ByteRecord;
 use linked_hash_map::LinkedHashMap;
@@ -10,15 +11,7 @@ pub use crate::transform::models::{
     Transformation,
     CellValue,
 };
-
-
-fn safe_to_utf8(bytes: &[u8]) -> String {
-    String::from_utf8(
-        bytes.to_vec(),
-    ).unwrap_or(
-        "".to_string(),
-    )
-}
+use crate::transform::input::apply_input;
 
 
 fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) -> String {
@@ -29,15 +22,6 @@ fn replace_with_mapping(value: String, mapping: &LinkedHashMap<String, String>) 
     }
 
     result
-}
-
-
-fn apply_input(row: &ByteRecord, index: &usize) -> CellValue {
-    CellValue::String(
-        row.get(*index).map(
-        |bytes| safe_to_utf8(bytes),
-        )
-    )
 }
 
 
@@ -120,6 +104,7 @@ fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
 mod parse_excel_ordinal_date_tests {
     use super::*;
 
+    #[cfg(test)]
     fn test_38142() {
         let ordinal = 38142;
         let expected_date = NaiveDate::from_ymd(2004, 4, 6);
