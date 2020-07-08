@@ -1,23 +1,21 @@
+use std::collections::BTreeMap;
+use std::fs;
+
+use csv::StringRecord;
+use serde::Deserialize;
+
+use crate::compile::input::{compile_multiple_input, compile_singular_input};
+use crate::compile::models::{Column, Expression, InputColumnIndexByName, MaybeSomeTransformation};
+pub use crate::compile::models::Config;
+use crate::compile::replace::compile_replace_regex;
+use crate::options::Variables;
+use crate::printable_error::{ConfigParseError, PrintableError};
+use crate::transform::{Transformation, Transformer};
+use crate::worker::MaybeTransformationsChain;
+
 mod input;
 mod replace;
 mod models;
-
-use std::fs;
-use serde::Deserialize;
-use std::collections::BTreeMap;
-use csv::StringRecord;
-
-use crate::transform::{Transformer, Transformation};
-use linked_hash_map::LinkedHashMap;
-use crate::printable_error::{PrintableError, ConfigParseError};
-use crate::options::Variables;
-use crate::worker::MaybeTransformationsChain;
-use crate::compile::input::{compile_multiple_input, compile_singular_input};
-use crate::compile::models::{InputColumnIndexByName, MaybeSomeTransformation, Expression, Column};
-
-pub use crate::compile::models::Config;
-use crate::compile::replace::compile_replace_regex;
-
 
 pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
     let content = fs::read_to_string(&path).expect(
