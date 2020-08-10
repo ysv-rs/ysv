@@ -1,5 +1,6 @@
 use crate::transform::CellValue;
 use chrono::{NaiveDate, Duration};
+use crate::printable_error::PrintableError;
 
 
 /// Inspired by: https://stackoverflow.com/a/29387450/1245471
@@ -49,16 +50,19 @@ mod parse_excel_ordinal_date_tests {
 }
 
 
-fn parse_date_with_format(value: String, format: &String) -> Option<NaiveDate> {
+fn parse_date_with_format(value: String, format: &String) -> Result<NaiveDate, PrintableError> {
     NaiveDate::parse_from_str(
         value.as_str(),
         format.as_str(),
     ).map_err(
-        |_err| eprintln!(
-            "Cannot parse date {} with format {}.",
-            value, format,
-        )
-    ).ok()
+        |_err| PrintableError {
+            error_type: "date".to_string(),
+            error_description: format!(
+                "Cannot parse date {} with format {}.",
+                value, format,
+            ).to_string()
+        }
+    )
 }
 
 
@@ -67,7 +71,9 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
         match value {
             CellValue::String(maybe_content) => match maybe_content {
                 Some(content) => {
-                    parse_date_with_format(content, format)
+                    parse_date_with_format(content, format).map_err(
+                        |err| eprintln!("{}", err.error_description)
+                    ).ok()
                 },
 
                 // FIXME I do not understand how to do this without match right now
