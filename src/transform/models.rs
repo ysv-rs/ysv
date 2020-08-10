@@ -15,6 +15,7 @@ pub enum Transformation {
 
     Date { format: String },
     DateMultiple { formats: Vec<String> },
+    ExcelOrdinalDate,
 
     Uppercase,
     Lowercase,

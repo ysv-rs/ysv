@@ -1,12 +1,10 @@
 use crate::transform::CellValue;
 use chrono::{NaiveDate, Duration};
+use crate::printable_error::PrintableError;
 
 
 /// Inspired by: https://stackoverflow.com/a/29387450/1245471
 fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
-    // FIXME: this function is being chosen to execute in runtime, but in fact
-    //   the question whether to call it or not depends on a special format value
-    //   in config file. Thus, it should be a compile time decision.
     let maybe_ordinal: Option<i64> = value.parse().ok();
 
     if maybe_ordinal.is_none() {
@@ -24,6 +22,19 @@ fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
 }
 
 
+pub fn apply_excel_ordinal_date(value: CellValue) -> CellValue {
+    CellValue::Date(
+        match value {
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| parse_excel_ordinal_date(content)
+            ).unwrap_or(None),
+
+            _ => panic!("Runtime typing error: 'excel_ordinal_date' transformation applied to {:?}.", value),
+        }
+    )
+}
+
+
 #[cfg(test)]
 mod parse_excel_ordinal_date_tests {
     use super::*;
@@ -32,23 +43,26 @@ mod parse_excel_ordinal_date_tests {
     fn test_38142() {
         let ordinal = 38142;
         let expected_date = NaiveDate::from_ymd(2004, 4, 6);
-        let date = parse_excel_ordinal_date(ordinal.to_string()).unwrap();
+        let date = apply_excel_ordinal_date(ordinal.to_string()).unwrap();
 
         assert_eq!(date, expected_date);
     }
 }
 
 
-fn parse_date_with_format(value: String, format: &String) -> Option<NaiveDate> {
+fn parse_date_with_format(value: String, format: &String) -> Result<NaiveDate, PrintableError> {
     NaiveDate::parse_from_str(
         value.as_str(),
         format.as_str(),
     ).map_err(
-        |_err| eprintln!(
-            "Cannot parse date {} with format {}.",
-            value, format,
-        )
-    ).ok()
+        |_err| PrintableError {
+            error_type: "date".to_string(),
+            error_description: format!(
+                "Cannot parse date {} with format {}.",
+                value, format,
+            ).to_string()
+        }
+    )
 }
 
 
@@ -57,11 +71,9 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
         match value {
             CellValue::String(maybe_content) => match maybe_content {
                 Some(content) => {
-                    if format == "excel-ordinal" {
-                        parse_excel_ordinal_date(content)
-                    } else {
-                        parse_date_with_format(content, format)
-                    }
+                    parse_date_with_format(content, format).map_err(
+                        |err| eprintln!("{}", err.error_description)
+                    ).ok()
                 },
 
                 // FIXME I do not understand how to do this without match right now
@@ -77,22 +89,29 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
 fn parse_date_with_formats(
     value: String,
     formats: &Vec<String>,
-) -> Option<NaiveDate> {
-    formats.iter().map(
+) -> Result<NaiveDate, PrintableError> {
+    let maybe_date: Option<NaiveDate> = formats.iter().map(
         |format| parse_date_with_format(value.clone(), &format)
-    ).flatten().next()
+    ).flatten().next();
+
+    maybe_date.ok_or(PrintableError {
+        error_type: "date".to_string(),
+        error_description: format!(
+            "Value {} could not be recognized as date in any of formats: {:?}",
+            value, formats,
+        )
+    })
 }
 
 
 pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> CellValue {
     CellValue::Date(
         match value {
-            CellValue::String(maybe_content) => match maybe_content {
-                Some(content) => parse_date_with_formats(
-                    content, formats,
-                ),
-                None => None,
-            }
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| parse_date_with_formats(content, formats).map_err(
+                    |err| eprintln!("{}", err.error_description),
+                ).ok()
+            ).unwrap_or(None),
 
             _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
         }
