@@ -80,10 +80,17 @@ fn from_transformation(name: &String) -> MaybeSomeTransformation {
     Ok(Some(Transformation::From { from: name.clone() }))
 }
 
+/// Create a specific date transformation based on the date format.
+///
+/// If format is "excel-ordinal", we will use particular algorithm for Excel ordinal dates;
+/// otherwise, we will create a generic date transformation from normal formats. Thus, this will be
+/// a compile time decision and we will not have to compare the format with a constant in runtime.
 fn date_transformation(format: &String) -> MaybeSomeTransformation {
-    Ok(Some(Transformation::Date { format: format.clone() } ))
+    Ok(Some(match format.as_str() {
+        "excel-ordinal" => Transformation::ExcelOrdinalDate,
+        _ => Transformation::Date { format: format.clone() }
+    }))
 }
-
 
 
 fn compile_expression(

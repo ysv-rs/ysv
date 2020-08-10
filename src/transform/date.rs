@@ -4,9 +4,6 @@ use chrono::{NaiveDate, Duration};
 
 /// Inspired by: https://stackoverflow.com/a/29387450/1245471
 fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
-    // FIXME: this function is being chosen to execute in runtime, but in fact
-    //   the question whether to call it or not depends on a special format value
-    //   in config file. Thus, it should be a compile time decision.
     let maybe_ordinal: Option<i64> = value.parse().ok();
 
     if maybe_ordinal.is_none() {
@@ -24,6 +21,19 @@ fn parse_excel_ordinal_date(value: String) -> Option<NaiveDate> {
 }
 
 
+pub fn apply_excel_ordinal_date(value: CellValue) -> CellValue {
+    CellValue::Date(
+        match value {
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| parse_excel_ordinal_date(content)
+            ).unwrap_or(None),
+
+            _ => panic!("Runtime typing error: 'excel_ordinal_date' transformation applied to {:?}.", value),
+        }
+    )
+}
+
+
 #[cfg(test)]
 mod parse_excel_ordinal_date_tests {
     use super::*;
@@ -32,7 +42,7 @@ mod parse_excel_ordinal_date_tests {
     fn test_38142() {
         let ordinal = 38142;
         let expected_date = NaiveDate::from_ymd(2004, 4, 6);
-        let date = parse_excel_ordinal_date(ordinal.to_string()).unwrap();
+        let date = apply_excel_ordinal_date(ordinal.to_string()).unwrap();
 
         assert_eq!(date, expected_date);
     }
@@ -57,11 +67,7 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
         match value {
             CellValue::String(maybe_content) => match maybe_content {
                 Some(content) => {
-                    if format == "excel-ordinal" {
-                        parse_excel_ordinal_date(content)
-                    } else {
-                        parse_date_with_format(content, format)
-                    }
+                    parse_date_with_format(content, format)
                 },
 
                 // FIXME I do not understand how to do this without match right now
