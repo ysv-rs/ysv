@@ -89,10 +89,18 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
 fn parse_date_with_formats(
     value: String,
     formats: &Vec<String>,
-) -> Option<NaiveDate> {
-    formats.iter().map(
+) -> Result<NaiveDate, PrintableError> {
+    let maybe_date: Option<NaiveDate> = formats.iter().map(
         |format| parse_date_with_format(value.clone(), &format)
-    ).flatten().next()
+    ).flatten().next();
+
+    maybe_date.ok_or(PrintableError {
+        error_type: "date".to_string(),
+        error_description: format!(
+            "Value {} could not be recognized as date in any of formats: {:?}",
+            value, formats,
+        )
+    })
 }
 
 
@@ -100,7 +108,9 @@ pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> C
     CellValue::Date(
         match value {
             CellValue::String(maybe_content) => maybe_content.map(
-                |content| parse_date_with_formats(content, formats)
+                |content| parse_date_with_formats(content, formats).map_err(
+                    |err| eprintln!("{}", err.error_description),
+                ).ok()
             ).unwrap_or(None),
 
             _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
