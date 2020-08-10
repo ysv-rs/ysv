@@ -87,12 +87,9 @@ fn parse_date_with_formats(
 pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> CellValue {
     CellValue::Date(
         match value {
-            CellValue::String(maybe_content) => match maybe_content {
-                Some(content) => parse_date_with_formats(
-                    content, formats,
-                ),
-                None => None,
-            }
+            CellValue::String(maybe_content) => maybe_content.map(
+                |content| parse_date_with_formats(content, formats)
+            ).unwrap_or(None),
 
             _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
         }
