@@ -1,6 +1,5 @@
 use crate::transform::CellValue;
 use chrono::{NaiveDate, Duration};
-use crate::printable_error::PrintableError;
 
 
 /// Inspired by: https://stackoverflow.com/a/29387450/1245471
@@ -50,18 +49,15 @@ mod parse_excel_ordinal_date_tests {
 }
 
 
-fn parse_date_with_format(value: String, format: &String) -> Result<NaiveDate, PrintableError> {
+fn parse_date_with_format(value: String, format: &String) -> Result<NaiveDate, String> {
     NaiveDate::parse_from_str(
         value.as_str(),
         format.as_str(),
     ).map_err(
-        |_err| PrintableError {
-            error_type: "date".to_string(),
-            error_description: format!(
-                "Cannot parse date {} with format {}.",
-                value, format,
-            ).to_string()
-        }
+        |_err| format!(
+            "Cannot parse date {} with format {}.",
+            value, format,
+        )
     )
 }
 
@@ -72,7 +68,7 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
             CellValue::String(maybe_content) => match maybe_content {
                 Some(content) => {
                     parse_date_with_format(content, format).map_err(
-                        |err| eprintln!("{}", err.error_description)
+                        |err| eprintln!("{}", err)
                     ).ok()
                 },
 
@@ -89,18 +85,16 @@ pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
 fn parse_date_with_formats(
     value: String,
     formats: &Vec<String>,
-) -> Result<NaiveDate, PrintableError> {
+) -> Result<NaiveDate, String> {
     let maybe_date: Option<NaiveDate> = formats.iter().map(
         |format| parse_date_with_format(value.clone(), &format)
     ).flatten().next();
 
-    maybe_date.ok_or(PrintableError {
-        error_type: "date".to_string(),
-        error_description: format!(
-            "Value {} could not be recognized as date in any of formats: {:?}",
-            value, formats,
-        )
-    })
+    maybe_date.ok_or(format!(
+        "Value '{value}' could not be recognized as date in any of formats: {formats_list}",
+        value=value,
+        formats_list=formats.join(", "),
+    ))
 }
 
 
@@ -109,7 +103,7 @@ pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> C
         match value {
             CellValue::String(maybe_content) => maybe_content.map(
                 |content| parse_date_with_formats(content, formats).map_err(
-                    |err| eprintln!("{}", err.error_description),
+                    |err| eprintln!("{}", err),
                 ).ok()
             ).unwrap_or(None),
 

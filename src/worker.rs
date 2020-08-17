@@ -4,11 +4,9 @@ use csv::{ByteRecord, Writer, ReaderBuilder};
 use crate::compile::create_transformer;
 use crate::transform::{Transformer, Transformation, CellValue};
 use crate::options::Options;
-use crate::printable_error::ConfigParseError;
-
 
 type TransformationsChain = Vec<Transformation>;
-pub type MaybeTransformationsChain = Result<TransformationsChain, ConfigParseError>;
+pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
 
 
 fn apply_transformations_chain(
@@ -44,7 +42,7 @@ fn transform(
 
 
 /// Do the whole job!
-pub fn process(options: Options) -> Result<(), Box<dyn error::Error>> {
+pub fn process(options: Options) -> Result<(), String> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
@@ -60,7 +58,7 @@ pub fn process(options: Options) -> Result<(), Box<dyn error::Error>> {
     );
 
     if let Err(err) = maybe_transformer {   // FIXME this is too hard
-        return Err(err.error_description.into());  // FIXME and this too
+        return Err(err);
     }
 
     let transformer = maybe_transformer.unwrap();

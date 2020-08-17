@@ -1,12 +1,11 @@
 use serde::Deserialize;
 use std::collections::BTreeMap;
 use crate::transform::Transformation;
-use crate::printable_error::ConfigParseError;
 use linked_hash_map::LinkedHashMap;
 
 pub type InputColumnIndexByName = BTreeMap<String, usize>;
 
-pub type MaybeSomeTransformation = Result<Option<Transformation>, ConfigParseError>;
+pub type MaybeSomeTransformation = Result<Option<Transformation>, String>;
 
 
 pub type ReplaceMapping = LinkedHashMap<String, String>;

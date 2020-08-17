@@ -9,7 +9,6 @@ mod worker;
 mod options;
 mod compile;
 mod transform;
-mod printable_error;
 
 /// Configure the logger which will print log to stderr.
 /// Well, it is currently no-op
@@ -23,7 +22,7 @@ pub fn run(
     log_format: LogFormat,
     config_file_path: &str,
     input_files: &str,
-) -> Result<(), Box<dyn error::Error>> {
+) -> Result<(), String> {
     let config = parse_config_from_file(config_file_path)?;
     let variables = determine_variables();
 

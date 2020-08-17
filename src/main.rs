@@ -6,7 +6,7 @@ use ysv::{run, parse_config_from_file, LogFormat};
 
 
 /// Parse command line arguments and start the application.
-fn main() -> Result<(), Box<dyn error::Error>> {
+fn main() -> Result<(), String> {
     let matches = clap_app!(ysv =>
         (version: "0.1.6")
         (author: "Anatoly I. Scherbakov <altaisoft@gmail.com>")
