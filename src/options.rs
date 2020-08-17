@@ -20,6 +20,7 @@ pub enum LogFormat {
 pub struct Options {
     pub(crate) config: Config,
     pub(crate) variables: Variables,
+    pub(crate) input_files: Option<Vec<String>>,
 }
 
 

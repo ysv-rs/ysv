@@ -1,4 +1,4 @@
-use std::{io, error};
+use std::io;
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::compile::create_transformer;
@@ -51,17 +51,11 @@ pub fn process(options: Options) -> Result<(), String> {
 
     let headers = reader.headers().unwrap().clone();
 
-    let maybe_transformer = create_transformer(
+    let transformer = create_transformer(
         &options.config,
         &headers,
         &options.variables,
-    );
-
-    if let Err(err) = maybe_transformer {   // FIXME this is too hard
-        return Err(err);
-    }
-
-    let transformer = maybe_transformer.unwrap();
+    )?;
 
     writer.write_record(&transformer.headers).unwrap();
 

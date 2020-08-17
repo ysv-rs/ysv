@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::error::Error;
 use std::fs;
 
 use csv::StringRecord;
@@ -22,7 +21,7 @@ mod date;
 /// Load the YAML configuration file content into memory and parse it
 pub fn parse_config_from_file(path: &str) -> Result<Config, String> {
     let content = fs::read_to_string(&path).map_err(
-        |err| format!("Cannot open configuration file. Reason: {:?}", err)
+        |err| format!("Can't open configuration file: {:?}", err),
     )?;
 
     serde_yaml::from_str(&content).map_err(
