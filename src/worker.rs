@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, error};
 use csv::{ByteRecord, Writer, ReaderBuilder};
 
 use crate::compile::create_transformer;
@@ -43,7 +43,8 @@ fn transform(
 }
 
 
-pub fn process(options: Options) -> Result<(), String> {
+/// Do the whole job!
+pub fn process(options: Options) -> Result<(), Box<dyn error::Error>> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
@@ -59,7 +60,7 @@ pub fn process(options: Options) -> Result<(), String> {
     );
 
     if let Err(err) = maybe_transformer {   // FIXME this is too hard
-        return Err(err.error_description);  // FIXME and this too
+        return Err(err.error_description.into());  // FIXME and this too
     }
 
     let transformer = maybe_transformer.unwrap();

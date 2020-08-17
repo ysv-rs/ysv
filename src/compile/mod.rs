@@ -1,9 +1,11 @@
 use std::collections::BTreeMap;
+use std::error::Error;
 use std::fs;
 
 use csv::StringRecord;
 use serde::Deserialize;
 
+use crate::compile::date::compile_date_with_multiple_formats;
 use crate::compile::input::{compile_multiple_input, compile_singular_input};
 use crate::compile::models::{Column, Expression, InputColumnIndexByName, MaybeSomeTransformation};
 pub use crate::compile::models::Config;
@@ -12,7 +14,6 @@ use crate::options::Variables;
 use crate::printable_error::{ConfigParseError, PrintableError};
 use crate::transform::{Transformation, Transformer};
 use crate::worker::MaybeTransformationsChain;
-use crate::compile::date::compile_date_with_multiple_formats;
 
 mod input;
 mod replace;
@@ -20,14 +21,10 @@ mod models;
 mod date;
 
 
-pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
-    let content = fs::read_to_string(&path).expect(
-        "Cannot open configuration file."
-    );
-
-    Ok(serde_yaml::from_str(&content).expect(
-        "YAML config could not be parsed."
-    ))
+/// Load the YAML configuration file content into memory and parse it
+pub fn parse_config_from_file(path: &str) -> Result<Config, Box<dyn Error>> {
+    let content = fs::read_to_string(&path)?;
+    serde_yaml::from_str(&content)?
 }
 
 
