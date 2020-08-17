@@ -3,7 +3,6 @@ use std::error::Error;
 use std::fs;
 
 use csv::StringRecord;
-use serde::Deserialize;
 
 use crate::compile::date::compile_date_with_multiple_formats;
 use crate::compile::input::{compile_multiple_input, compile_singular_input};
@@ -11,7 +10,7 @@ use crate::compile::models::{Column, Expression, InputColumnIndexByName, MaybeSo
 pub use crate::compile::models::Config;
 use crate::compile::replace::compile_replace_regex;
 use crate::options::Variables;
-use crate::printable_error::{ConfigParseError, PrintableError};
+use crate::printable_error::ConfigParseError;
 use crate::transform::{Transformation, Transformer};
 use crate::worker::MaybeTransformationsChain;
 

@@ -27,7 +27,7 @@ pub fn run(
     let config = parse_config_from_file(config_file_path)?;
     let variables = determine_variables();
 
-    /// A little dirty side-effect: set logging format
+    // A little dirty side-effect: set logging format
     configure_logging(log_format);
 
     process(Options { config, variables })

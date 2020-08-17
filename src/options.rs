@@ -1,9 +1,7 @@
 use std::collections::BTreeMap;
 use std::env;
 
-use serde_json::json;
-
-use crate::compile::{Config, parse_config_from_file};
+use crate::compile::Config;
 
 pub type Variables = BTreeMap<String, String>;
 
