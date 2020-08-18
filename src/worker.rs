@@ -45,9 +45,10 @@ fn transform(
 /// Read and process all the records from given CSV Reader object.
 pub fn process_from_reader<T: io::Read>(
     mut reader: Reader<T>,
-    options: Options,
-    mut writer: Writer<Stdout>,
-) -> Result<(), String> {
+    options: &Options,
+    writer: &mut Writer<Stdout>,
+    start_line_number: usize,
+) -> Result<usize, String> {
     let headers = reader.headers().unwrap().clone();
 
     let transformer = create_transformer(
@@ -56,19 +57,60 @@ pub fn process_from_reader<T: io::Read>(
         &options.variables,
     )?;
 
-    writer.write_record(&transformer.headers).unwrap();
+    if start_line_number == 1 {
+        writer.write_record(&transformer.headers).unwrap();
+    }
 
+    let mut current_line_number = start_line_number.clone();
     for (line_number, result) in reader.byte_records().enumerate() {
         let record = result.unwrap();
+
+        current_line_number = start_line_number + line_number;
 
         writer.write_record(&transform(
             record,
             &transformer,
-            line_number + 1,
+            current_line_number,
         )).unwrap();
     }
 
     writer.flush().unwrap();
+
+    Ok(current_line_number + 1)
+}
+
+
+fn process_from_stdin(options: Options) -> Result<(), String> {
+    let mut reader = ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(io::stdin());
+
+    let mut writer = Writer::from_writer(io::stdout());
+
+    process_from_reader(reader, &options, &mut writer, 1)?;
+
+    Ok(())
+}
+
+
+fn process_from_file_list(options: &Options) -> Result<(), String> {
+    let mut writer = Writer::from_writer(io::stdout());
+
+    let mut line_number = 1;
+    for file_path in options.input_files.as_ref().unwrap().iter() {
+        let mut reader = ReaderBuilder::new()
+            .flexible(true)
+            .from_path(file_path).map_err(
+                |err| err.to_string(),
+            )?;
+
+        line_number = process_from_reader(
+            reader,
+            &options,
+            &mut writer,
+            line_number,
+        )?;
+    }
 
     Ok(())
 }
@@ -76,13 +118,8 @@ pub fn process_from_reader<T: io::Read>(
 
 /// Do the whole job!
 pub fn process(options: Options) -> Result<(), String> {
-    let mut reader = ReaderBuilder::new()
-        .flexible(true)
-        .from_reader(io::stdin());
-
-    let mut writer = Writer::from_writer(io::stdout());
-
-    process_from_reader(reader, options, writer)?;
-
-    Ok(())
+    match options.input_files {
+        None => process_from_stdin(options),
+        Some(_) => process_from_file_list(&options),
+    }
 }
