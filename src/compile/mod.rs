@@ -2,17 +2,15 @@ use std::collections::BTreeMap;
 use std::fs;
 
 use csv::StringRecord;
-use serde::Deserialize;
 
+use crate::compile::date::compile_date_with_multiple_formats;
 use crate::compile::input::{compile_multiple_input, compile_singular_input};
 use crate::compile::models::{Column, Expression, InputColumnIndexByName, MaybeSomeTransformation};
 pub use crate::compile::models::Config;
 use crate::compile::replace::compile_replace_regex;
 use crate::options::Variables;
-use crate::printable_error::{ConfigParseError, PrintableError};
 use crate::transform::{Transformation, Transformer};
 use crate::worker::MaybeTransformationsChain;
-use crate::compile::date::compile_date_with_multiple_formats;
 
 mod input;
 mod replace;
@@ -20,14 +18,15 @@ mod models;
 mod date;
 
 
-pub fn parse_config_from_file(path: &str) -> Result<Config, PrintableError> {
-    let content = fs::read_to_string(&path).expect(
-        "Cannot open configuration file."
-    );
+/// Load the YAML configuration file content into memory and parse it
+pub fn parse_config_from_file(path: &str) -> Result<Config, String> {
+    let content = fs::read_to_string(&path).map_err(
+        |err| format!("Can't open configuration file: {:?}", err),
+    )?;
 
-    Ok(serde_yaml::from_str(&content).expect(
-        "YAML config could not be parsed."
-    ))
+    serde_yaml::from_str(&content).map_err(
+        |err| format!("Configuration file could not be parsed. Reason: {:?}", err)
+    )
 }
 
 
@@ -50,12 +49,10 @@ fn transformation_without_parameters(
         "uppercase" => Ok(Some(Transformation::Uppercase)),
         "lowercase" => Ok(Some(Transformation::Lowercase)),
         "line-number" => Ok(Some(Transformation::LineNumber)),
-        _ => Err(ConfigParseError {
-            column: None,
-            transformation: Some(transformation_name.clone()),
-            error_type: "unknown-transformation".to_string(),
-            error_description: "This transformation is not supported. Please refer to documentation for the list of supported transformations.".to_string()
-        })
+        _ => Err(format!(
+            "Transformation '{}' is not supported.",
+            transformation_name,
+        ))
     }
 }
 
@@ -177,7 +174,10 @@ fn expressions_to_transformations_chain(
         ),
     );
 
-    let maybe_some_transformations: Result<Vec<Option<Transformation>>, ConfigParseError> = mapped_steps.collect();
+    let maybe_some_transformations: Result<
+        Vec<Option<Transformation>>,
+        String,
+    > = mapped_steps.collect();
 
     Ok(maybe_some_transformations?.into_iter().flatten().collect())
 }
@@ -208,10 +208,10 @@ pub fn create_transformer(
     config: &Config,
     headers: &StringRecord,
     variables: &Variables,
-) -> Result<Transformer, ConfigParseError> {
+) -> Result<Transformer, String> {
     let input_columns_index_by_name = get_input_columns_index_map(headers);
 
-    let maybe_columns: Result<Vec<Vec<Transformation>>, ConfigParseError> = config.columns.values().map(
+    let maybe_columns: Result<Vec<Vec<Transformation>>, String> = config.columns.values().map(
         |column| column_to_transformations_chain(
             column,
             &input_columns_index_by_name,
