@@ -1,9 +1,10 @@
 use std::io;
-use csv::{ByteRecord, Writer, ReaderBuilder};
+use csv::{ByteRecord, Writer, ReaderBuilder, Reader};
 
 use crate::compile::create_transformer;
 use crate::transform::{Transformer, Transformation, CellValue};
 use crate::options::Options;
+use std::io::Stdout;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
@@ -41,14 +42,12 @@ fn transform(
 }
 
 
-/// Do the whole job!
-pub fn process(options: Options) -> Result<(), String> {
-    let mut reader = ReaderBuilder::new()
-        .flexible(true)
-        .from_reader(io::stdin());
-
-    let mut writer = Writer::from_writer(io::stdout());
-
+/// Read and process all the records from given CSV Reader object.
+pub fn process_from_reader<T: io::Read>(
+    mut reader: Reader<T>,
+    options: Options,
+    mut writer: Writer<Stdout>,
+) -> Result<(), String> {
     let headers = reader.headers().unwrap().clone();
 
     let transformer = create_transformer(
@@ -69,5 +68,21 @@ pub fn process(options: Options) -> Result<(), String> {
         )).unwrap();
     }
 
-    Ok(writer.flush().unwrap())
+    writer.flush().unwrap();
+
+    Ok(())
+}
+
+
+/// Do the whole job!
+pub fn process(options: Options) -> Result<(), String> {
+    let mut reader = ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(io::stdin());
+
+    let mut writer = Writer::from_writer(io::stdout());
+
+    process_from_reader(reader, options, writer)?;
+
+    Ok(())
 }
