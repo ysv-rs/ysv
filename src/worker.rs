@@ -1,10 +1,9 @@
 use std::{io, thread};
-use csv::{ByteRecord, Writer, ReaderBuilder, Reader};
+use csv::{ByteRecord, ReaderBuilder, Reader};
 
 use crate::compile::create_transformer;
 use crate::transform::{Transformer, Transformation, CellValue, ApplyResult};
 use crate::options::Options;
-use std::io::Stdout;
 use std::sync::mpsc;
 use crate::writer::writer_thread;
 
@@ -102,7 +101,7 @@ pub fn process_from_reader<T: io::Read>(
 
 /// Read CSV data from standard input.
 fn process_from_stdin(options: Options) -> Result<(), String> {
-    let mut reader = ReaderBuilder::new()
+    let reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
 
@@ -116,7 +115,7 @@ fn process_from_stdin(options: Options) -> Result<(), String> {
 fn process_from_file_list(options: &Options) -> Result<(), String> {
     let mut line_number = 1;
     for file_path in options.input_files.as_ref().unwrap().iter() {
-        let mut reader = ReaderBuilder::new()
+        let reader = ReaderBuilder::new()
             .flexible(true)
             .from_path(file_path).map_err(
                 |err| err.to_string(),
