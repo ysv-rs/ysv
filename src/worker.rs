@@ -2,7 +2,7 @@ use std::{io, thread};
 use csv::{ByteRecord, Writer, ReaderBuilder, Reader};
 
 use crate::compile::create_transformer;
-use crate::transform::{Transformer, Transformation, CellValue};
+use crate::transform::{Transformer, Transformation, CellValue, ApplyResult};
 use crate::options::Options;
 use std::io::Stdout;
 use std::sync::mpsc;
@@ -12,19 +12,31 @@ use std::ops::Deref;
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
 
-
+/// Apply the given chain of transformations to the value given.
+/// The return value is ready for printing, hence it is a String.
 fn apply_transformations_chain(
     transformations_chain: &TransformationsChain,
     record: &ByteRecord,
     line_number: usize,
 ) -> String {
-    let mut value: CellValue = CellValue::empty_string();
+    // TODO it would be useful for performance to stop fold()-ing when the value is Err().
+    let apply_result: ApplyResult = transformations_chain.iter().fold(
+        Ok(CellValue::empty_string()),
+        |result, transformation| result.and_then(
+            |cell_value| transformation.apply(
+                cell_value,
+                record,
+                line_number,
+            )
+        )
+    );
 
-    for transformation in transformations_chain.iter() {
-        value = transformation.apply(value, record, line_number);
+    if let Ok(cell_value) = apply_result {
+        cell_value.to_string()
+    } else {
+        eprintln!("{}", apply_result.err().unwrap());
+        String::new()
     }
-
-    value.to_string()
 }
 
 

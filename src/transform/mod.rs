@@ -11,6 +11,7 @@ pub use crate::transform::models::{
     Transformer,
     Transformation,
     CellValue,
+    ApplyResult,
 };
 use crate::transform::input::apply_input;
 use crate::transform::replace::{apply_replace, apply_replace_regex};
@@ -38,40 +39,42 @@ impl Transformation {
         value: CellValue,
         row: &ByteRecord,
         line_number: usize,
-    ) -> CellValue {
+    ) -> ApplyResult {
         match self {
-            Transformation::Input(index) => apply_input(row, index),
+            Transformation::Input(index) => Ok(apply_input(row, index)),
 
             // FIXME: this is a no-op still
-            Transformation::Slice { start: _start, end: _end } => value,
+            Transformation::Slice { start: _start, end: _end } => Ok(value),
 
-            Transformation::Lowercase => apply_lowercase(value),
-            Transformation::Uppercase => apply_uppercase(value),
+            Transformation::Lowercase => Ok(apply_lowercase(value)),
+            Transformation::Uppercase => Ok(apply_uppercase(value)),
 
-            Transformation::Replace { replace } => apply_replace(
+            Transformation::Replace { replace } => Ok(apply_replace(
                 value,
                 replace,
-            ),
+            )),
 
             Transformation::ReplaceRegex {
                 pattern, replace
-            } => apply_replace_regex(
+            } => Ok(apply_replace_regex(
                 value,
                 pattern,
                 replace,
-            ),
+            )),
 
-            Transformation::Value { value } => CellValue::from_string(value.clone()),
+            Transformation::Value { value } => Ok(CellValue::from_string(
+                value.clone(),
+            )),
 
-            Transformation::LineNumber => apply_line_number(line_number),
+            Transformation::LineNumber => Ok(apply_line_number(line_number)),
 
-            Transformation::From { from } => apply_from(from.to_string()),
+            Transformation::From { from } => Ok(apply_from(from.to_string())),
 
             Transformation::Date { format } => apply_parse_date(value, format),
             Transformation::DateMultiple { formats } => apply_date_multiple_formats(
                 value, formats,
             ),
-            Transformation::ExcelOrdinalDate => apply_excel_ordinal_date(value),
+            Transformation::ExcelOrdinalDate => Ok(apply_excel_ordinal_date(value)),
         }
     }
 }
