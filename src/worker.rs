@@ -60,7 +60,6 @@ fn transform(
 pub fn process_from_reader<T: io::Read>(
     mut reader: Reader<T>,
     options: &Options,
-    writer: &mut Writer<Stdout>,
     start_line_number: usize,
 ) -> Result<usize, String> {
     let headers = reader.headers().unwrap().clone();
@@ -97,28 +96,24 @@ pub fn process_from_reader<T: io::Read>(
 
     writer_handle.join().unwrap();
 
-    writer.flush().unwrap();
-
     Ok(current_line_number + 1)
 }
 
 
+/// Read CSV data from standard input.
 fn process_from_stdin(options: Options) -> Result<(), String> {
     let mut reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
 
-    let mut writer = Writer::from_writer(io::stdout());
-
-    process_from_reader(reader, &options, &mut writer, 1)?;
+    process_from_reader(reader, &options, 1)?;
 
     Ok(())
 }
 
 
+/// Read CSV data from a set of files.
 fn process_from_file_list(options: &Options) -> Result<(), String> {
-    let mut writer = Writer::from_writer(io::stdout());
-
     let mut line_number = 1;
     for file_path in options.input_files.as_ref().unwrap().iter() {
         let mut reader = ReaderBuilder::new()
@@ -130,7 +125,6 @@ fn process_from_file_list(options: &Options) -> Result<(), String> {
         line_number = process_from_reader(
             reader,
             &options,
-            &mut writer,
             line_number,
         )?;
     }
