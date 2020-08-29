@@ -7,7 +7,6 @@ use crate::options::Options;
 use std::io::Stdout;
 use std::sync::mpsc;
 use crate::writer::writer_thread;
-use std::ops::Deref;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;

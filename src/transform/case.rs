@@ -1,27 +1,26 @@
-use crate::transform::CellValue;
+use crate::transform::{CellValue, ApplyResult};
 
 
-pub fn apply_lowercase(value: CellValue) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_string) => maybe_string.map(
-                |content| content.to_lowercase(),
-            ),
-
-            _ => panic!("Runtime typing error: 'lowercase' transformation applied to {:?}.", value)
-        }
-    )
+/// Known string case transformations.
+pub enum StringCase {
+    Uppercase,
+    Lowercase,
 }
 
 
-pub fn apply_uppercase(value: CellValue) -> CellValue {
-    CellValue::String(
-        match value {
-            CellValue::String(maybe_string) => maybe_string.map(
-                |content| content.to_uppercase(),
-            ),
+/// Change a string to the upper or lower case.
+pub fn apply_change_case(value: CellValue, case: StringCase) -> ApplyResult {
+    if let CellValue::String(Some(content)) = value {
+        Ok(CellValue::String(Some(match case {
+            StringCase::Lowercase => content.to_lowercase(),
+            StringCase::Uppercase => content.to_uppercase(),
+        })))
 
-            _ => panic!("Runtime typing error: 'uppercase' transformation applied to {:?}.", value)
-        }
-    )
+    } else {
+        Err(format!(
+            "Warning: cannot apply the case change transformation to a {} value '{:?}'.",
+            &value.type_name(),
+            &value,
+        ))
+    }
 }

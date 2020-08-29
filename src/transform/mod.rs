@@ -15,7 +15,7 @@ pub use crate::transform::models::{
 };
 use crate::transform::input::apply_input;
 use crate::transform::replace::{apply_replace, apply_replace_regex};
-use crate::transform::case::{apply_uppercase, apply_lowercase};
+use crate::transform::case::{apply_change_case, StringCase};
 use crate::transform::date::{apply_parse_date, apply_date_multiple_formats, apply_excel_ordinal_date};
 
 
@@ -46,8 +46,8 @@ impl Transformation {
             // FIXME: this is a no-op still
             Transformation::Slice { start: _start, end: _end } => Ok(value),
 
-            Transformation::Lowercase => Ok(apply_lowercase(value)),
-            Transformation::Uppercase => Ok(apply_uppercase(value)),
+            Transformation::Lowercase => apply_change_case(value, StringCase::Lowercase),
+            Transformation::Uppercase => apply_change_case(value, StringCase::Uppercase),
 
             Transformation::Replace { replace } => Ok(apply_replace(
                 value,
