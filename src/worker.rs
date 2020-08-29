@@ -1,10 +1,13 @@
-use std::io;
+use std::{io, thread};
 use csv::{ByteRecord, Writer, ReaderBuilder, Reader};
 
 use crate::compile::create_transformer;
 use crate::transform::{Transformer, Transformation, CellValue};
 use crate::options::Options;
 use std::io::Stdout;
+use std::sync::mpsc;
+use crate::writer::writer_thread;
+use std::ops::Deref;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
@@ -57,9 +60,13 @@ pub fn process_from_reader<T: io::Read>(
         &options.variables,
     )?;
 
+    let (tx, rx) = mpsc::channel();
+
     if start_line_number == 1 {
-        writer.write_record(&transformer.headers).unwrap();
+        tx.send(transformer.headers.as_byte_record().clone()).unwrap();
     }
+
+    let writer_handle = thread::spawn(move || writer_thread(rx));
 
     let mut current_line_number = start_line_number.clone();
     for (line_number, result) in reader.byte_records().enumerate() {
@@ -67,12 +74,17 @@ pub fn process_from_reader<T: io::Read>(
 
         current_line_number = start_line_number + line_number;
 
-        writer.write_record(&transform(
+        tx.send(transform(
             record,
             &transformer,
             current_line_number,
         )).unwrap();
     }
+
+    // We must close the channel to indicate we are not going to send anything else
+    drop(tx);
+
+    writer_handle.join().unwrap();
 
     writer.flush().unwrap();
 

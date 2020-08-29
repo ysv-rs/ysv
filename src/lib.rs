@@ -7,6 +7,7 @@ mod worker;
 mod options;
 mod compile;
 mod transform;
+mod writer;
 
 /// Configure the logger which will print log to stderr.
 /// Well, it is currently no-op
