@@ -1,27 +1,40 @@
-use std::io;
-use csv::{ByteRecord, Writer, ReaderBuilder, Reader};
+use std::{io, thread};
+use csv::{ByteRecord, ReaderBuilder, Reader};
 
 use crate::compile::create_transformer;
-use crate::transform::{Transformer, Transformation, CellValue};
+use crate::transform::{Transformer, Transformation, CellValue, ApplyResult};
 use crate::options::Options;
-use std::io::Stdout;
+use std::sync::mpsc;
+use crate::writer::writer_thread;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
 
-
+/// Apply the given chain of transformations to the value given.
+/// The return value is ready for printing, hence it is a String.
 fn apply_transformations_chain(
     transformations_chain: &TransformationsChain,
     record: &ByteRecord,
     line_number: usize,
 ) -> String {
-    let mut value: CellValue = CellValue::empty_string();
+    // TODO it would be useful for performance to stop fold()-ing when the value is Err().
+    let apply_result: ApplyResult = transformations_chain.iter().fold(
+        Ok(CellValue::empty_string()),
+        |result, transformation| result.and_then(
+            |cell_value| transformation.apply(
+                cell_value,
+                record,
+                line_number,
+            )
+        )
+    );
 
-    for transformation in transformations_chain.iter() {
-        value = transformation.apply(value, record, line_number);
+    if let Ok(cell_value) = apply_result {
+        cell_value.to_string()
+    } else {
+        eprintln!("{}", apply_result.err().unwrap());
+        String::new()
     }
-
-    value.to_string()
 }
 
 
@@ -46,7 +59,6 @@ fn transform(
 pub fn process_from_reader<T: io::Read>(
     mut reader: Reader<T>,
     options: &Options,
-    writer: &mut Writer<Stdout>,
     start_line_number: usize,
 ) -> Result<usize, String> {
     let headers = reader.headers().unwrap().clone();
@@ -57,9 +69,13 @@ pub fn process_from_reader<T: io::Read>(
         &options.variables,
     )?;
 
+    let (tx, rx) = mpsc::channel();
+
     if start_line_number == 1 {
-        writer.write_record(&transformer.headers).unwrap();
+        tx.send(transformer.headers.as_byte_record().clone()).unwrap();
     }
+
+    let writer_handle = thread::spawn(move || writer_thread(rx));
 
     let mut current_line_number = start_line_number.clone();
     for (line_number, result) in reader.byte_records().enumerate() {
@@ -67,38 +83,39 @@ pub fn process_from_reader<T: io::Read>(
 
         current_line_number = start_line_number + line_number;
 
-        writer.write_record(&transform(
+        tx.send(transform(
             record,
             &transformer,
             current_line_number,
         )).unwrap();
     }
 
-    writer.flush().unwrap();
+    // We must close the channel to indicate we are not going to send anything else
+    drop(tx);
+
+    writer_handle.join().unwrap();
 
     Ok(current_line_number + 1)
 }
 
 
+/// Read CSV data from standard input.
 fn process_from_stdin(options: Options) -> Result<(), String> {
-    let mut reader = ReaderBuilder::new()
+    let reader = ReaderBuilder::new()
         .flexible(true)
         .from_reader(io::stdin());
 
-    let mut writer = Writer::from_writer(io::stdout());
-
-    process_from_reader(reader, &options, &mut writer, 1)?;
+    process_from_reader(reader, &options, 1)?;
 
     Ok(())
 }
 
 
+/// Read CSV data from a set of files.
 fn process_from_file_list(options: &Options) -> Result<(), String> {
-    let mut writer = Writer::from_writer(io::stdout());
-
     let mut line_number = 1;
     for file_path in options.input_files.as_ref().unwrap().iter() {
-        let mut reader = ReaderBuilder::new()
+        let reader = ReaderBuilder::new()
             .flexible(true)
             .from_path(file_path).map_err(
                 |err| err.to_string(),
@@ -107,7 +124,6 @@ fn process_from_file_list(options: &Options) -> Result<(), String> {
         line_number = process_from_reader(
             reader,
             &options,
-            &mut writer,
             line_number,
         )?;
     }

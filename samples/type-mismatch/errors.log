@@ -1,2 +1,1 @@
-thread 'main' panicked at 'Runtime typing error: 'uppercase' transformation applied to Date(Some(2020-06-10)).', src/transform/case.rs:24:18
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+Warning: cannot apply the case change transformation to a date value 'Date(Some(2020-06-10))'.

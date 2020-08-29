@@ -1,5 +1,6 @@
 use crate::transform::CellValue;
 use chrono::{NaiveDate, Duration};
+use crate::transform::models::ApplyResult;
 
 
 /// Inspired by: https://stackoverflow.com/a/29387450/1245471
@@ -62,23 +63,18 @@ fn parse_date_with_format(value: String, format: &String) -> Result<NaiveDate, S
 }
 
 
-pub fn apply_parse_date(value: CellValue, format: &String) -> CellValue {
-    CellValue::Date(
-        match value {
-            CellValue::String(maybe_content) => match maybe_content {
-                Some(content) => {
-                    parse_date_with_format(content, format).map_err(
-                        |err| eprintln!("{}", err)
-                    ).ok()
-                },
-
-                // FIXME I do not understand how to do this without match right now
-                None => None
-            },
-
-            _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
-        }
-    )
+pub fn apply_parse_date(value: CellValue, format: &String) -> ApplyResult {
+    if let CellValue::String(Some(content)) = value {
+        parse_date_with_format(content, format).map(
+            |date| CellValue::Date(Some(date))
+        )
+    } else {
+        Err(format!(
+            "Warning: cannot apply 'date' transformation to a {} value '{:?}'.",
+            &value.type_name(),
+            &value,
+        ))
+    }
 }
 
 
@@ -98,16 +94,16 @@ fn parse_date_with_formats(
 }
 
 
-pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> CellValue {
-    CellValue::Date(
-        match value {
-            CellValue::String(maybe_content) => maybe_content.map(
-                |content| parse_date_with_formats(content, formats).map_err(
-                    |err| eprintln!("{}", err),
-                ).ok()
-            ).unwrap_or(None),
-
-            _ => panic!("Runtime typing error: 'date' transformation applied to {:?}.", value),
-        }
-    )
+pub fn apply_date_multiple_formats(value: CellValue, formats: &Vec<String>) -> ApplyResult {
+    if let CellValue::String(Some(content)) = value {
+        parse_date_with_formats(content, formats).map(
+            |date| CellValue::Date(Some(date))
+        )
+    } else {
+        Err(format!(
+            "Warning: cannot apply 'date' transformation to a {} value '{:?}'.",
+            &value.type_name(),
+            &value,
+        ))
+    }
 }

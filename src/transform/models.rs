@@ -30,7 +30,17 @@ pub enum CellValue {
 }
 
 
+pub type ApplyResult = Result<CellValue, String>;
+
+
 impl CellValue {
+    pub fn type_name(&self) -> &str {
+        match self {
+            CellValue::String(_) => "string",
+            CellValue::Date(_) => "date",
+        }
+    }
+
     pub fn empty_string() -> CellValue {
         CellValue::String(Some("".to_string()))
     }
