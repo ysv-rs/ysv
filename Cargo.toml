@@ -1,6 +1,6 @@
 [package]
 name = "ysv"
-version = "0.1.7"
+version = "0.1.8"
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 edition = "2018"
 license = "MIT"
