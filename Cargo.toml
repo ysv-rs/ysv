@@ -1,6 +1,6 @@
 [package]
 name = "ysv"
-version = "0.1.8"
+version = "0.1.9"
 authors = ["Anatoly Scherbakov <altaisoft@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -28,4 +28,4 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
 clap = "= 3.0.0-beta.1"
 simple_logger = "1.6.0"
-crossbeam = "^0.8.1"
+crossbeam-channel = "^0.5.1"
