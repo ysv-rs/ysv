@@ -6,9 +6,13 @@ use crate::transform::{Transformer, Transformation, CellValue, ApplyResult};
 use crate::options::Options;
 use std::sync::mpsc;
 use crate::writer::writer_thread;
+use crossbeam::bounded;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
+
+// Size of the queue between reader and writer.
+const QUEUE_SIZE: i32 = 1000;
 
 /// Apply the given chain of transformations to the value given.
 /// The return value is ready for printing, hence it is a String.
@@ -69,7 +73,8 @@ pub fn process_from_reader<T: io::Read>(
         &options.variables,
     )?;
 
-    let (tx, rx) = mpsc::channel();
+    // let (tx, rx) = mpsc::channel();
+    let (tx, rx) = crossbeam::bounded(QUEUE_SIZE);
 
     if start_line_number == 1 {
         tx.send(transformer.headers.as_byte_record().clone()).unwrap();
