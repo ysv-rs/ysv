@@ -1,6 +1,7 @@
 use csv::{Writer, ByteRecord};
 use std::io;
-use std::sync::mpsc::Receiver;
+// use std::sync::mpsc::Receiver;
+use crossbeam_channel::Receiver;
 
 
 /// Receive data records and print them (usually, to stdout or a file).
