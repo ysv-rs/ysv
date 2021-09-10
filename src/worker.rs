@@ -4,9 +4,7 @@ use csv::{ByteRecord, ReaderBuilder, Reader};
 use crate::compile::create_transformer;
 use crate::transform::{Transformer, Transformation, CellValue, ApplyResult};
 use crate::options::Options;
-// use std::sync::mpsc;
 use crate::writer::writer_thread;
-use crossbeam_channel::bounded;
 
 type TransformationsChain = Vec<Transformation>;
 pub type MaybeTransformationsChain = Result<TransformationsChain, String>;
@@ -73,7 +71,6 @@ pub fn process_from_reader<T: io::Read>(
         &options.variables,
     )?;
 
-    // let (tx, rx) = mpsc::channel();
     let (tx, rx) = crossbeam_channel::bounded(QUEUE_SIZE);
 
     if start_line_number == 1 {

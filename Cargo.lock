@@ -517,7 +517,7 @@ dependencies = [
 
 [[package]]
 name = "ysv"
-version = "0.1.9"
+version = "0.1.10"
 dependencies = [
  "chrono",
  "clap",
