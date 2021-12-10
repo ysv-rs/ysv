@@ -7,7 +7,7 @@ use ysv::{run, LogFormat};
 /// Parse command line arguments and start the application.
 fn main() -> Result<(), String> {
     let matches = clap_app!(ysv =>
-        (version: "0.1.10\n")
+        (version: "0.1.11\n")
         (author: "Anatoly I. Scherbakov <altaisoft@gmail.com>")
         (about: "YAML-driven CSV formatter")
         (@arg LOG_FORMAT: -f --log-format +takes_value "Log format: 'plain' (default) or 'json'")
